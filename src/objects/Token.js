@@ -1,12 +1,14 @@
-﻿import { CELL, UI_DEPTH } from '../config/constants.js';
+﻿import { tokenImageKey } from '../config/assets.js';
+import { CELL, UI_DEPTH } from '../config/constants.js';
 import { layout, MIN_TOUCH } from '../config/layout.js';
 import { gridToPixel } from '../board/geometry.js';
 import { positionFor } from '../game/path.js';
 import { UI } from '../ui/theme.js';
 
 const RADIUS = CELL * 0.34;
+const PICTURE = CELL * 0.86; // the width of the piece's picture (the glossy pieces in img/elements)
 
-// A single game piece: shadow, coloured body, ring, shine and a "can move" halo, grouped in a
+// A single game piece: shadow, the piece's picture (or, without it, a coloured body, ring and shine) and a "can move" halo, grouped in a
 // container. All animation goes through the Animator so it is cancelled safely on shutdown.
 export class Token {
   constructor(scene, animator, player, index) {
@@ -20,14 +22,22 @@ export class Token {
 
     const shadow = scene.add.ellipse(2, RADIUS * 0.6, RADIUS * 1.7, RADIUS * 0.9, 0x000000, 0.3);
     this.halo = scene.add.circle(0, 0, RADIUS * 1.3).setStrokeStyle(4, UI.accent).setVisible(false);
-    const body = scene.add.circle(0, 0, RADIUS, player.color).setStrokeStyle(4, 0x1b1f2a);
-    const ring = scene.add.circle(0, 0, RADIUS * 0.62).setStrokeStyle(2, 0xffffff, 0.55);
-    const shine = scene.add.circle(-RADIUS * 0.35, -RADIUS * 0.4, RADIUS * 0.22, 0xffffff, 0.45);
+    // The piece is drawn in the colour this screen paints the seat in (player.colorId; see config/palette.js).
+    const key = tokenImageKey(player.colorId ?? player.id);
+    let looks;
+    if (scene.textures?.exists?.(key)) {
+      looks = [scene.add.image(0, 0, key).setDisplaySize(PICTURE, PICTURE)];
+    } else {
+      const body = scene.add.circle(0, 0, RADIUS, player.color).setStrokeStyle(4, 0x1b1f2a);
+      const ring = scene.add.circle(0, 0, RADIUS * 0.62).setStrokeStyle(2, 0xffffff, 0.55);
+      const shine = scene.add.circle(-RADIUS * 0.35, -RADIUS * 0.4, RADIUS * 0.22, 0xffffff, 0.45);
+      looks = [body, ring, shine];
+    }
 
     // The container is the touch target: at least a cell wide, and large enough to tap comfortably when
     // the screen scales the board down (capped so neighbouring cells do not overlap too much).
     const hit = Math.min(CELL * 1.7, Math.max(CELL, MIN_TOUCH / layout.scale));
-    this.view = scene.add.container(0, 0, [shadow, this.halo, body, ring, shine]).setSize(hit, hit).setDepth(UI_DEPTH.token);
+    this.view = scene.add.container(0, 0, [shadow, this.halo, ...looks]).setSize(hit, hit).setDepth(UI_DEPTH.token);
     this.placeAt(-1);
   }
 

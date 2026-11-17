@@ -3,6 +3,12 @@ import friendsUrl from '../../img/buttons/with-friends-button.png';
 import localUrl from '../../img/buttons/local-multiplayer-button.png';
 import onlineUrl from '../../img/buttons/play-online-button.png';
 import settingsUrl from '../../img/buttons/setting-button-small.png'; // a 320 px copy of setting-button.png (tools/shrinkImage.mjs)
+import backgroundUrl from '../../img/elements/bg-small.png';
+import boardUrl from '../../img/elements/board.png';
+import blueTokenUrl from '../../img/elements/token-blue.png';
+import greenTokenUrl from '../../img/elements/token-green.png';
+import redTokenUrl from '../../img/elements/token-red.png';
+import yellowTokenUrl from '../../img/elements/token-yellow.png';
 import largeFontPng from '../../img/spritefont/font-lg.png';
 import largeFontXml from '../../img/spritefont/font-lg.xml?url';
 import smallFontPng from '../../img/spritefont/font-sm.png';
@@ -27,6 +33,20 @@ export const MENU_BUTTON_IMAGES = [
   { key: 'btn-online', url: onlineUrl },
   { key: 'btn-friends', url: friendsUrl },
   { key: 'btn-settings', url: settingsUrl },
+];
+
+// The board, the four pieces and the wooden background (img/elements, made by tools/buildElements.mjs). If one is missing the
+// game falls back to drawing it with shapes.
+export const BOARD_IMAGE = 'board-img';
+export const BACKGROUND_IMAGE = 'bg-img';
+export const tokenImageKey = (colorId) => `token-${colorId}`;
+export const ELEMENT_IMAGES = [
+  { key: BOARD_IMAGE, url: boardUrl },
+  { key: BACKGROUND_IMAGE, url: backgroundUrl },
+  { key: tokenImageKey('red'), url: redTokenUrl },
+  { key: tokenImageKey('green'), url: greenTokenUrl },
+  { key: tokenImageKey('yellow'), url: yellowTokenUrl },
+  { key: tokenImageKey('blue'), url: blueTokenUrl },
 ];
 
 // The picture font, in two sizes (made from img/spritefont/spritefont-sheet-1.png by tools/buildSpriteFont.mjs).

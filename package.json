@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "check": "npm run lint && npm test && npm run build",
+    "build:elements": "node tools/buildElements.mjs",
     "build:font": "node tools/buildSpriteFont.mjs",
     "build:avatars": "node tools/shrinkAvatars.mjs",
     "archive": "node scripts/archive.mjs",

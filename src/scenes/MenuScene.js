@@ -6,6 +6,7 @@ import { settingsStore } from '../config/settingsStore.js';
 import { localSeatsFor, seatsFor } from '../game/settings.js';
 import { Avatar } from '../objects/Avatar.js';
 import { ImageButton } from '../objects/ImageButton.js';
+import { addBackground } from '../ui/background.js';
 import { ProfileDialog } from '../ui/ProfileDialog.js';
 import { avatarForName } from '../ui/profileAvatar.js';
 import { SetupDialog } from '../ui/SetupDialog.js';
@@ -23,6 +24,7 @@ export class MenuScene extends Phaser.Scene {
   create() {
     const m = layout.menu;
     const cx = layout.width / 2;
+    addBackground(this);
     this.addBackdrop();
 
     addText(this, cx, m.titleY, 'LUDO', { fontSize: `${m.titleFont}px`, color: '#ffffff' }).setOrigin(0.5);

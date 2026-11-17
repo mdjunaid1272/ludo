@@ -1,41 +1,82 @@
+import { BOARD_IMAGE } from '../config/assets.js';
 import { CELL, COLORS, PLAYERS } from '../config/constants.js';
-import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_OFFSETS } from '../game/path.js';
+import { BOARD } from '../config/layout.js';
+import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } from '../game/path.js';
 import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
-import { gridRect, gridToPixel, rotateVector } from './geometry.js';
+import { getBoardRotation, gridRect, gridToPixel, rotateVector } from './geometry.js';
+import { isIdentity, mappingKey, recolor } from './recolor.js';
+
+// The board picture (img/elements/board.png) for this screen's colours, as the key of a loaded texture: the picture itself when every
+// seat is painted in its own colour, otherwise a copy repainted for the palette (made once and kept). Null when the picture is not
+// loaded (tests, or it failed to load): the board is then drawn with shapes.
+function boardTexture(scene, palette) {
+  const textures = scene.textures;
+  if (!textures?.exists?.(BOARD_IMAGE)) return null;
+  const mapping = Object.fromEntries(PLAYERS.map((p) => [p.id, palette.colorId(p.id)]));
+  if (isIdentity(mapping)) return BOARD_IMAGE;
+  const key = `${BOARD_IMAGE}:${mappingKey(mapping)}`;
+  if (textures.exists(key)) return key;
+  const source = textures.get(BOARD_IMAGE).getSourceImage();
+  const canvas = globalThis.document?.createElement('canvas');
+  if (!canvas) return BOARD_IMAGE;
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(source, 0, 0);
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  recolor(pixels.data, mapping);
+  ctx.putImageData(pixels, 0, 0);
+  textures.addCanvas(key, canvas);
+  return key;
+}
+
+// Puts the board picture on the screen, turned with the board. Returns true if it did.
+function drawBoardPicture(scene, palette) {
+  const key = boardTexture(scene, palette);
+  if (!key) return false;
+  const middle = gridToPixel(7.5, 7.5);
+  scene.add.image(middle.x, middle.y, key).setDisplaySize(BOARD, BOARD).setAngle(getBoardRotation() * 90);
+  return true;
+}
 
 // Draws a static 15x15 Ludo board: four yards, cross-shaped track, home column and centre. The board may be turned in
 // quarter turns (see geometry.js): everything here is placed through the grid helpers, so the turn is applied to it all.
 // Yards of colours that are not playing (activePlayers) are dimmed. The palette says which colour and name each seat is
 // painted in on this screen (online games show everybody's own choice, see game/perspective.js); positions never change.
 export function drawBoard(scene, { activePlayers = PLAYERS.map((p) => p.id), makeText = addText, palette = IDENTITY_PALETTE } = {}) {
+  const textured = drawBoardPicture(scene, palette); // the picture draws the cells, yards and centre; the code only adds names and dimming
   const g = scene.add.graphics();
   const fillCells = (col, row, w = 1, h = 1) => {
     const r = gridRect(col, row, w, h);
     g.fillRect(r.x, r.y, r.w, r.h);
   };
 
-  // White base for the whole board.
-  g.fillStyle(COLORS.cell, 1);
-  fillCells(0, 0, 15, 15);
+  if (!textured) {
+    // White base for the whole board.
+    g.fillStyle(COLORS.cell, 1);
+    fillCells(0, 0, 15, 15);
 
-  // Home columns and start cells, taken from the same data the game logic uses.
-  for (const seat of PLAYERS) {
-    g.fillStyle(palette.color(seat.id), 1);
-    for (const [c, r] of [...HOME_LANE_CELLS[seat.id], TRACK_CELLS[START_INDEX[seat.id]]]) fillCells(c, r);
+    // Home columns and start cells, taken from the same data the game logic uses.
+    for (const seat of PLAYERS) {
+      g.fillStyle(palette.color(seat.id), 1);
+      for (const [c, r] of [...HOME_LANE_CELLS[seat.id], TRACK_CELLS[START_INDEX[seat.id]]]) fillCells(c, r);
+    }
   }
   // Yards, one per player, each with a white panel and four token spots.
   for (const seat of PLAYERS) {
     const p = palette.entry(seat.id);
     const [corner, row] = YARD_CORNER[p.id];
-    g.fillStyle(p.color, 1);
-    fillCells(corner, row, 6, 6);
-    const panel = gridRect(corner + 1, row + 1, 4, 4);
-    g.fillStyle(0xffffff, 1).fillRoundedRect(panel.x, panel.y, panel.w, panel.h, 16);
-    g.fillStyle(p.color, 1);
-    for (const [dx, dy] of YARD_OFFSETS) {
-      const c = gridToPixel(corner + dx, row + dy);
-      g.fillCircle(c.x, c.y, CELL * 0.4);
+    if (!textured) {
+      g.fillStyle(p.color, 1);
+      fillCells(corner, row, 6, 6);
+      const panel = gridRect(corner + 1, row + 1, 4, 4);
+      g.fillStyle(0xffffff, 1).fillRoundedRect(panel.x, panel.y, panel.w, panel.h, 16);
+      g.fillStyle(p.color, 1);
+      for (const [dx, dy] of YARD_SLOTS[p.id]) {
+        const c = gridToPixel(corner + dx, row + dy);
+        g.fillCircle(c.x, c.y, CELL * 0.4);
+      }
     }
     if (!activePlayers.includes(p.id)) {
       g.fillStyle(0x1b1f2a, 0.6);
@@ -45,6 +86,8 @@ export function drawBoard(scene, { activePlayers = PLAYERS.map((p) => p.id), mak
     const yard = gridRect(corner, row, 6, 6);
     makeText(scene, yard.x + yard.w / 2, yard.y + CELL * 0.5, p.label, { fontSize: '20px', color: '#ffffff' }).setOrigin(0.5);
   }
+
+  if (textured) return g;
 
   // Centre: four coloured triangles meeting at the middle.
   const c = gridToPixel(7.5, 7.5);

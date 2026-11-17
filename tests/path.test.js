@@ -1,7 +1,7 @@
 ﻿import { describe, it, expect } from 'vitest';
 import {
   TRACK_CELLS, TRACK_LENGTH, START_INDEX, STAR_INDICES, SAFE_INDICES, HOME_LANE_CELLS, HOME_SPOT,
-  YARD_CORNER, YARD_OFFSETS, PLAYER_IDS, IN_YARD, FINISHED, positionFor, absIndexFor,
+  YARD_CORNER, YARD_SLOTS, PLAYER_IDS, IN_YARD, FINISHED, positionFor, absIndexFor,
 } from '../src/game/path.js';
 
 const key = ([c, r]) => `${c},${r}`;
@@ -114,7 +114,7 @@ describe('positionFor', () => {
   it('places yard spots inside the colour yard and finished tokens inside the centre', () => {
     for (const id of PLAYER_IDS) {
       const [cc, cr] = YARD_CORNER[id];
-      expect(YARD_OFFSETS).toHaveLength(4);
+      expect(YARD_SLOTS[id]).toHaveLength(4);
       const spots = [0, 1, 2, 3].map((i) => positionFor(id, IN_YARD, i));
       expect(new Set(spots.map((s) => `${s.gx},${s.gy}`)).size).toBe(4);
       for (const { gx, gy } of spots) {
@@ -127,18 +127,36 @@ describe('positionFor', () => {
     }
   });
 
-  it('has yards and finishing spots that are the previous colour rotated 90 degrees', () => {
+  it('has finishing spots that are the previous colour rotated 90 degrees, and yard spots that are nearly so', () => {
+    // The yard spots are the holes of the board picture, which is not perfectly symmetric (see YARD_SLOTS): within half a cell.
     for (const id of PLAYER_IDS) {
-      for (const p of [IN_YARD, FINISHED]) {
+      for (const [p, tolerance] of [[FINISHED, 1e-9], [IN_YARD, 0.5]]) {
         for (let i = 0; i < 4; i++) {
           const rotated = rotatePoint(positionFor(id, p, i));
           const targets = [0, 1, 2, 3].map((j) => positionFor(next(id), p, j));
           expect(
-            targets.some((t) => Math.abs(t.gx - rotated.gx) < 1e-9 && Math.abs(t.gy - rotated.gy) < 1e-9),
+            targets.some((t) => Math.abs(t.gx - rotated.gx) < tolerance && Math.abs(t.gy - rotated.gy) < tolerance),
             `${id} p=${p} token ${i}`,
           ).toBe(true);
         }
       }
+    }
+  });
+
+  it('puts every yard spot where a hole of the board picture is (measured from img/elements/ludo-board.png)', () => {
+    // hole centres in cells from the picture's top left corner, found by tools/holes scan; the game must agree with them within 0.05 cell
+    const holes = {
+      red: [[1.64, 1.71], [3.53, 1.71], [1.64, 3.62], [3.53, 3.62]],
+      green: [[11.38, 1.74], [13.27, 1.74], [11.38, 3.65], [13.27, 3.65]],
+      yellow: [[11.4, 11.45], [13.24, 11.45], [11.4, 13.34], [13.24, 13.34]],
+      blue: [[1.64, 11.41], [3.52, 11.41], [1.64, 13.28], [3.52, 13.28]],
+    };
+    for (const id of PLAYER_IDS) {
+      holes[id].forEach(([x, y], i) => {
+        const spot = positionFor(id, IN_YARD, i);
+        expect(Math.abs(spot.gx - x), `${id} ${i} x`).toBeLessThan(0.06);
+        expect(Math.abs(spot.gy - y), `${id} ${i} y`).toBeLessThan(0.06);
+      });
     }
   });
 });

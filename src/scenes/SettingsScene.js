@@ -4,6 +4,7 @@ import { SETTING_ROWS } from '../config/settingsRows.js';
 import { settingsStore } from '../config/settingsStore.js';
 import { cycleOption } from '../game/settings.js';
 import { Button } from '../objects/Button.js';
+import { addBackground } from '../ui/background.js';
 import { addText } from '../ui/SpriteText.js';
 import { UI } from '../ui/theme.js';
 
@@ -18,6 +19,7 @@ export class SettingsScene extends Phaser.Scene {
     const s = layout.settings;
     this.settings = settingsStore.load();
     this.controls = new Map();
+    addBackground(this);
 
     addText(this, layout.width / 2, s.titleY, 'Settings', { fontSize: `${s.titleFont}px`, color: '#ffffff' }).setOrigin(0.5);
 

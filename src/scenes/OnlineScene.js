@@ -5,6 +5,7 @@ import { perspectiveColors } from '../game/perspective.js';
 import { estimateTextWidth, layout } from '../config/layout.js';
 import { settingsStore } from '../config/settingsStore.js';
 import { Button } from '../objects/Button.js';
+import { addBackground } from '../ui/background.js';
 import { PLAY_ONLINE_SIZE, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '../online/protocol.js';
 import { onlineSession } from '../online/session.js';
 import { Toast } from '../ui/Toast.js';
@@ -33,6 +34,7 @@ export class OnlineScene extends Phaser.Scene {
 
   // `data.intent` says which splash button opened this scene: 'play' (search for a match at once) or 'friends'.
   create(data) {
+    addBackground(this);
     this.intent = data?.intent ?? null;
     this.wantedColor = data?.color ?? null; // the colour chosen in the Play Online popup
     this.session = onlineSession;

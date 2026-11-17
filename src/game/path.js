@@ -38,8 +38,14 @@ export const HOME_SPOT = {
   blue: [7.5, 8.2],
 };
 
-// Token spots inside each yard, as offsets from the yard corner.
-export const YARD_OFFSETS = [[2, 2], [4, 2], [2, 4], [4, 4]];
+// Token spots inside each yard, as offsets from the yard corner, one set per colour: they are the four holes of that yard in the
+// board picture (img/elements/board.png, measured from it), which sit a little towards the board's outer corner.
+export const YARD_SLOTS = {
+  red: [[1.64, 1.71], [3.53, 1.71], [1.64, 3.62], [3.53, 3.62]],
+  green: [[2.38, 1.74], [4.27, 1.74], [2.38, 3.65], [4.27, 3.65]],
+  yellow: [[2.4, 2.45], [4.24, 2.45], [2.4, 4.34], [4.24, 4.34]],
+  blue: [[1.64, 2.41], [3.52, 2.41], [1.64, 4.28], [3.52, 4.28]],
+};
 export const YARD_CORNER = { red: [0, 0], green: [9, 0], yellow: [9, 9], blue: [0, 9] };
 
 // Progress values: -1 = in yard, 0..50 = on the shared track (relative to the
@@ -56,7 +62,7 @@ const centre = ([c, r]) => ({ gx: c + 0.5, gy: r + 0.5 });
 export function positionFor(color, progress, tokenIndex) {
   if (progress === IN_YARD) {
     const [cc, cr] = YARD_CORNER[color];
-    const [dx, dy] = YARD_OFFSETS[tokenIndex];
+    const [dx, dy] = YARD_SLOTS[color][tokenIndex];
     return { gx: cc + dx, gy: cr + dy };
   }
   if (progress <= LAST_TRACK_STEP) {

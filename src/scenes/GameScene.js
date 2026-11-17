@@ -17,6 +17,7 @@ import { TurnController } from '../game/TurnController.js';
 import { COOLDOWN_MS, cooldownGroup, reactionById } from '../online/reactions.js';
 import { onlineSession } from '../online/session.js';
 import { Animator } from '../systems/Animator.js';
+import { addBackground } from '../ui/background.js';
 import { Modal } from '../ui/Modal.js';
 import { ReactionPanel } from '../ui/ReactionPanel.js';
 import { Toast } from '../ui/Toast.js';
@@ -49,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    addBackground(this);
     if (this.sceneData.mode === 'online') this.createOnline();
     else this.createLocal();
   }

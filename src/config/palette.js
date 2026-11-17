@@ -10,7 +10,8 @@ export function makePalette(colors = {}) {
   const shown = (seat) => byId(colors[seat] ?? seat);
   return {
     colors,
-    entry: (seat) => ({ ...shown(seat), id: seat }),
+    entry: (seat) => ({ ...shown(seat), id: seat, colorId: shown(seat).id }), // id: the seat; colorId: the colour it is painted in
+    colorId: (seat) => shown(seat).id,
     color: (seat) => shown(seat).color,
     label: (seat) => shown(seat).label,
     // Pure yellow is unreadable as text on the dark background, so text uses a deeper shade.
