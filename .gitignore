@@ -1,0 +1,17 @@
+﻿node_modules/
+dist/
+.vite/
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+archives/
+*.zip
+
+
+# Windows / Google Drive folder markers
+desktop.ini
