@@ -30,9 +30,8 @@ export class PhaserGameView {
   // winner dialog. Names belong to seats, so every screen shows the same name for a seat whatever colour it paints it in.
   constructor(scene, animator, state, {
     onRoll, onPick, onRestartRequest, onMenuRequest, onPlayAgain, onExit,
-    computers = [], vsComputer = false, you = null, endButtons = null, restartEnabled = true, avatars = {}, palette = IDENTITY_PALETTE, names = null, pauseOnFinish = true, onChat = null, fixedDie = false,
+    computers = [], vsComputer = false, you = null, endButtons = null, restartEnabled = true, avatars = {}, palette = IDENTITY_PALETTE, names = null, pauseOnFinish = true, onChat = null,
   }) {
-    this.fixedDie = fixedDie; // true: the die always stands bottom left, whoever's turn it is (Local Multiplayer)
     this.scene = scene;
     this.palette = palette; // how each seat is painted on this screen (online: everybody's own choice of colour)
     this.state = state;
@@ -189,7 +188,6 @@ export class PhaserGameView {
   // Where the die stands for `player`: next to that player's yard, as it appears on screen (above or below the board, on
   // the yard's side).
   diceSpot(player) {
-    if (this.fixedDie) return layout.hud.diceSpot(false, true);
     const { right, below } = this.quadrant(player);
     return layout.hud.diceSpot(right, below);
   }
