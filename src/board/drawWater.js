@@ -12,12 +12,12 @@ const BEHIND_BOARD = -10; // above the page background, below the board and ever
 
 const wantsLessMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
 
-// `x`, `y` is the middle of the square and `size` its width and height, in screen pixels.
-export function drawWater(scene, x, y, size) {
+// `x`, `y` is the middle of the water and `width` and `height` its size (a square when `height` is left out), in screen pixels.
+export function drawWater(scene, x, y, width, height = width) {
   const hasPictures = scene.textures?.exists?.(WATER_BASE_IMAGE) && scene.textures.exists(WATER_LIGHT_IMAGE);
   if (!hasPictures || !scene.add?.tileSprite) return [];
-  const base = scene.add.tileSprite(x, y, size, size, WATER_BASE_IMAGE).setDepth(BEHIND_BOARD).setTileScale(BASE.scale);
-  const light = scene.add.tileSprite(x, y, size, size, WATER_LIGHT_IMAGE).setDepth(BEHIND_BOARD + 1).setTileScale(LIGHT.scale).setBlendMode(ADD);
+  const base = scene.add.tileSprite(x, y, width, height, WATER_BASE_IMAGE).setDepth(BEHIND_BOARD).setTileScale(BASE.scale);
+  const light = scene.add.tileSprite(x, y, width, height, WATER_LIGHT_IMAGE).setDepth(BEHIND_BOARD + 1).setTileScale(LIGHT.scale).setBlendMode(ADD);
   if (wantsLessMotion() || !scene.events?.on) return [base, light];
   // The pictures' own size matters: they drift by pixels of the picture, so a bigger picture on screen drifts faster on screen.
   const drift = (layer, { scale, speed }, seconds) => {

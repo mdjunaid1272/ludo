@@ -1,6 +1,6 @@
 import { BOARD_IMAGE } from '../config/assets.js';
 import { CELL, COLORS, PLAYERS } from '../config/constants.js';
-import { BOARD } from '../config/layout.js';
+import { BOARD, layout } from '../config/layout.js';
 import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } from '../game/path.js';
 import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
@@ -34,13 +34,28 @@ function boardTexture(scene, palette) {
   return key;
 }
 
+// How far the water reaches above and below the board picture on a tall screen (the board's own picture, ludo-board3.png, has water
+// round it too): far enough to sit behind the rows of avatars and dice, and never more than that picture's own margin. None when the
+// screen is wide (the avatars stand beside the board) or has no rows round the board.
+const BOARD3_MARGIN = 468 / 1283; // that picture's water above the board, as a part of the board's height
+function waterBeyondBoard() {
+  if (layout.orientation !== 'portrait') return 0;
+  const above = layout.hud.diceSpot(false, false).y;
+  const below = layout.hud.diceSpot(false, true).y;
+  if (above === below) return 0;
+  const reach = layout.boardY - above + (layout.hud.avatar?.size ?? 0) * 0.4; // from the board edge to the outer edge of the avatars
+  const room = Math.min(layout.boardY, layout.height - layout.boardY - BOARD); // the water must stay on the screen
+  return Math.max(0, Math.min(reach, BOARD * BOARD3_MARGIN, room));
+}
+
 // Puts the board picture on the screen, turned with the board. Returns true if it did.
 function drawBoardPicture(scene, palette) {
   const key = boardTexture(scene, palette);
   if (!key) return false;
   const middle = gridToPixel(7.5, 7.5);
   const size = (BOARD * PICTURE_CELLS) / 15; // the picture shows a little more than the 15 x 15 cells (see config/boardPicture.js)
-  drawWater(scene, middle.x, middle.y, size); // shows through the picture's cut-out water
+  const extra = waterBeyondBoard(); // on a tall screen the water goes on above and below the board, behind the rows of avatars and dice
+  drawWater(scene, middle.x, middle.y, Math.max(size, layout.width), size + 2 * extra); // shows through the picture's cut-out water
   scene.add.image(middle.x, middle.y, key).setDisplaySize(size, size).setAngle(getBoardRotation() * 90);
   return true;
 }

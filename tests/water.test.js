@@ -4,6 +4,7 @@ import { drawBoard } from '../src/board/drawBoard.js';
 import { drawWater } from '../src/board/drawWater.js';
 import { BOARD_IMAGE, WATER_BASE_IMAGE, WATER_LIGHT_IMAGE } from '../src/config/assets.js';
 import { BOARD_MARGIN_CELLS, PICTURE_CELLS } from '../src/config/boardPicture.js';
+import { BOARD, computeLayout, layout } from '../src/config/layout.js';
 import { HOME_LANE_CELLS, YARD_CORNER, YARD_SLOTS } from '../src/game/path.js';
 import { decodePng } from '../tools/png.mjs';
 import { makeWaterBase, makeWaterLight } from '../tools/waterTile.mjs';
@@ -97,6 +98,47 @@ describe('the moving water behind the board', () => {
     expect(drawWater(scene, 0, 0, 100)).toEqual([]);
     expect(sprites).toHaveLength(0);
     expect(drawWater({ textures: { exists: () => true }, add: {} }, 0, 0, 100)).toEqual([]); // no tile sprites to make
+  });
+
+  it('can be taller than it is wide (water above and below the board)', () => {
+    const { scene, sprites } = waterScene();
+    drawWater(scene, 360, 750, 720, 1000);
+    for (const s of sprites) expect([s.x, s.y, s.w, s.h]).toEqual([360, 750, 720, 1000]);
+  });
+
+  it('goes on above and below the board on a tall screen, behind the rows of avatars and dice, and stays on the screen', () => {
+    const sprites = [];
+    const g = new Proxy({}, { get: () => () => g });
+    const scene = {
+      textures: { exists: (key) => [BOARD_IMAGE, WATER_BASE_IMAGE, WATER_LIGHT_IMAGE].includes(key), get: () => ({ getSourceImage: () => ({ width: 4, height: 4 }) }) },
+      add: {
+        graphics: () => g,
+        image: () => ({ setDisplaySize() { return this; }, setAngle() { return this; } }),
+        tileSprite: (x, y, w, h, key) => {
+          const s = { key, x, y, w, h, setDepth() { return this; }, setTileScale() { return this; }, setBlendMode() { return this; } };
+          sprites.push(s);
+          return s;
+        },
+      },
+    };
+    const original = { ...layout };
+    try {
+      Object.assign(layout, computeLayout(720, 1500));
+      drawBoard(scene, { makeText: () => ({ setOrigin() { return this; } }) });
+      const [water] = sprites;
+      expect(layout.orientation).toBe('portrait');
+      expect(water.h).toBeGreaterThan((BOARD * PICTURE_CELLS) / 15); // taller than the board picture
+      const top = water.y - water.h / 2;
+      const bottom = water.y + water.h / 2;
+      expect(top).toBeGreaterThan(0);
+      expect(bottom).toBeLessThan(layout.height);
+      expect(layout.boardY - top).toBeGreaterThan(layout.boardY - layout.hud.diceSpot(false, false).y); // reaches past the top row of dice
+      expect(layout.boardY - top).toBeLessThanOrEqual(BOARD * (468 / 1283) + 0.001); // never more than the picture's own water
+      expect(water.y).toBeCloseTo(layout.boardY + BOARD / 2, 5); // the same distance above as below
+      expect(water.w).toBeGreaterThanOrEqual(layout.width);
+    } finally {
+      Object.assign(layout, original);
+    }
   });
 
   it('is part of drawing the board, as big as the board picture', () => {

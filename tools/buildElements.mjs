@@ -6,7 +6,7 @@ import { makeWaterBase, makeWaterLight } from './waterTile.mjs';
 
 // Prepares the pictures in img/elements for the game (npm run build:elements). The originals stay as they are; the game loads
 // the files made here:
-//   board.png        the board (from ludo-board2.png), turned a quarter so the colours sit in the game's corners, and warped so that every
+//   board.png        the board (from ludo-board3.png), turned a quarter so the colours sit in the game's corners, and warped so that every
 //                    cell is exactly the same size and the 15 x 15 cells fill the picture (the artwork's cells vary a little in size and
 //                    the grid is not centred in it, which the game's square grid cannot follow). A small margin of the artwork round the
 //                    grid is kept (BOARD_MARGIN_CELLS), so the yards' rims are not cut off.
@@ -22,12 +22,20 @@ const write = (name, image) => {
 };
 
 // --- the board -----------------------------------------------------------------------------------------------------------
-// ludo-board2.png has green top left, orange top right, blue bottom right and red bottom left. The game has red top left, then green,
+// ludo-board3.png has green top left, orange top right, blue bottom right and red bottom left. The game has red top left, then green,
 // yellow and blue clockwise, so the picture is turned a quarter clockwise first. These are where the 16 grid lines are in the TURNED picture
 // (1283 x 1226), in its pixels, measured from the stone tiles (see docs/ASSETS.md).
 const XS = [86, 174, 255, 333, 409, 486, 558, 639, 717, 792, 871, 949, 1029, 1109, 1191, 1269];
 const YS = [24, 104, 184, 261, 336, 410, 473, 555, 642, 724, 798, 875, 953, 1035, 1116, 1199];
 const CELL_PX = 64; // pixels per cell in the made picture
+
+// ludo-board3.png is the same board as ludo-board2.png (1226 x 1283) standing on a taller canvas of water; the board starts BOARD3_TOP
+// rows down. The board is cut out of it here; the extra water around it is drawn by the game (src/board/drawWater.js).
+const BOARD3_TOP = 468;
+const BOARD3_ROWS = 1283;
+function cropRows(src, top, rows) {
+  return { width: src.width, height: rows, pixels: Buffer.from(src.pixels.subarray(top * src.width * 4, (top + rows) * src.width * 4)) };
+}
 
 // The picture turned a quarter clockwise: pixel (x, y) of the result is pixel (y, height - 1 - x) of the original.
 function turnClockwise(src) {
@@ -58,7 +66,7 @@ function bilinear(src, x, y) {
 }
 
 function buildBoard() {
-  const src = turnClockwise(read('ludo-board2.png'));
+  const src = turnClockwise(cropRows(read('ludo-board3.png'), BOARD3_TOP, BOARD3_ROWS));
   const margin = Math.round(BOARD_MARGIN_CELLS * CELL_PX);
   const size = CELL_PX * 15 + 2 * margin;
   const pixels = Buffer.alloc(size * size * 4);
