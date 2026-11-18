@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import { BOARD_MARGIN_CELLS } from '../src/config/boardPicture.js';
+import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } from '../src/game/path.js';
 import { decodePng, downscale, encodePng } from './png.mjs';
+import { makeWaterBase, makeWaterLight } from './waterTile.mjs';
 
 // Prepares the pictures in img/elements for the game (npm run build:elements). The originals stay as they are; the game loads
 // the files made here:
@@ -8,6 +10,8 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 //                    cell is exactly the same size and the 15 x 15 cells fill the picture (the artwork's cells vary a little in size and
 //                    the grid is not centred in it, which the game's square grid cannot follow). A small margin of the artwork round the
 //                    grid is kept (BOARD_MARGIN_CELLS), so the yards' rims are not cut off.
+//                    The blue water in it is cut out (made see-through), so the game can show moving water behind the board.
+//   water-base.png, water-light.png   the two seamless water pictures that move behind the board (tools/waterTile.mjs)
 //   token-<colour>.png   the four pieces, cropped to the piece and made small (they are drawn about 40 px wide)
 //   bg-small.png     the background (from bg2.png) at half size
 const DIR = new URL('../img/elements/', import.meta.url);
@@ -77,7 +81,88 @@ function buildBoard() {
       pixels[i] = r; pixels[i + 1] = g; pixels[i + 2] = b; pixels[i + 3] = a;
     }
   }
+  cutOutWater(pixels, size);
   write('board.png', { width: size, height: size, pixels });
+}
+
+// Makes the water see-through: the more blue a pixel is (blue well above red and green), the more transparent it gets, with a soft
+// edge. Only the water counts: blue pixels that can be reached from the picture's border through blue pixels. The blue player's
+// yard panel and home column are as blue as the water, but the gold frame and the stone cells shut them in, so they stay as they are.
+function cutOutWater(pixels, size) {
+  const smooth = (a, b, x) => {
+    const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  const blueness = (p) => pixels[p * 4 + 2] - Math.max(pixels[p * 4], pixels[p * 4 + 1]);
+  const water = new Uint8Array(size * size);
+  const stack = [];
+  const push = (p) => {
+    if (!water[p] && blueness(p) >= 25) {
+      water[p] = 1;
+      stack.push(p);
+    }
+  };
+  for (let i = 0; i < size; i++) {
+    push(i); push((size - 1) * size + i); push(i * size); push(i * size + size - 1);
+  }
+  const spread = () => {
+    while (stack.length) {
+      const p = stack.pop();
+      const x = p % size;
+      if (x > 0) push(p - 1);
+      if (x < size - 1) push(p + 1);
+      if (p >= size) push(p - size);
+      if (p < size * (size - 1)) push(p + size);
+    }
+  };
+  spread();
+  // Pockets of water the border cannot reach (a seam of leaves or stone cuts them off): any other big blue area is water too, except
+  // the ones the blue player's yard panel, home column and the centre triangle are in.
+  const margin = Math.round(BOARD_MARGIN_CELLS * CELL_PX);
+  const at = (cx, cy) => margin + Math.round(cx * CELL_PX) + (margin + Math.round(cy * CELL_PX)) * size;
+  const keepSeeds = [
+    ...YARD_SLOTS.blue.map(([dx, dy]) => at(YARD_CORNER.blue[0] + dx, YARD_CORNER.blue[1] + dy)),
+    ...[...HOME_LANE_CELLS.blue, TRACK_CELLS[START_INDEX.blue]].flatMap(([c, r]) => [0.15, 0.85].flatMap((u) => [0.15, 0.85].map((v) => at(c + u, r + v)))),
+    at(7.5, 8.4),
+  ];
+  const label = new Int32Array(size * size);
+  let next = 0;
+  const keep = new Set();
+  for (let start = 0; start < size * size; start++) {
+    if (water[start] || label[start] || blueness(start) < 25) continue;
+    next++;
+    const members = [start];
+    label[start] = next;
+    for (let k = 0; k < members.length; k++) {
+      const p = members[k];
+      const x = p % size;
+      for (const q of [x > 0 ? p - 1 : -1, x < size - 1 ? p + 1 : -1, p - size, p + size]) {
+        if (q < 0 || q >= size * size || water[q] || label[q] || blueness(q) < 25) continue;
+        label[q] = next;
+        members.push(q);
+      }
+    }
+    if (members.length < 1500) continue;
+    if (keepSeeds.some((s) => label[s] === next)) keep.add(next);
+    else for (const p of members) { water[p] = 1; stack.push(p); }
+  }
+  stack.length = 0;
+  // soft edge: the transparency follows how blue the pixel is, but only for the pixels the water reaches (and the ones just beside them)
+  const near = new Uint8Array(size * size);
+  for (let p = 0; p < size * size; p++) {
+    if (!water[p]) continue;
+    const x = p % size;
+    const y = (p - x) / size;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && ny >= 0 && nx < size && ny < size) near[ny * size + nx] = 1;
+    }
+  }
+  for (let p = 0; p < size * size; p++) {
+    if (!water[p] && !near[p]) continue;
+    pixels[p * 4 + 3] = Math.round(255 * (1 - smooth(25, 55, blueness(p))));
+  }
 }
 
 // --- the pieces ----------------------------------------------------------------------------------------------------------
@@ -112,6 +197,8 @@ function buildToken(colour, file) {
 }
 
 buildBoard();
+write('water-base.png', makeWaterBase());
+write('water-light.png', makeWaterLight());
 for (const [colour, file] of Object.entries(TOKENS)) buildToken(colour, file);
 const bg = read('bg2.png');
 write('bg-small.png', downscale(bg, 0.5));

@@ -5,6 +5,7 @@ Your artwork in `img/elements` is used like this (`npm run build:elements` makes
 | Original | Made file | Used for |
 | --- | --- | --- |
 | `ludo-board2.png` | `board.png` (1000 x 1000) | The board: yards, cells, home columns and centre. The artwork has green top left, so it is turned a quarter clockwise to put the colours in the game's corners (red top left, then green, yellow, blue clockwise). Its stone cells vary a little in size and it is not centred, so the tool warps it cell by cell onto an exact 15 x 15 grid (the grid lines were measured from the turned picture) and keeps a small margin (`BOARD_MARGIN_CELLS` in `src/config/boardPicture.js`) so the yards' rims are not cut off; the game draws the picture that much bigger than the grid. |
+| (made) | `water-base.png`, `water-light.png` (256 x 256) | The moving water. The blue water is cut out of `board.png` (see-through, found by flood-filling the blue from the picture's border; the blue yard panel and home column are kept) and two seamless pictures of water drift behind it (`src/board/drawWater.js`): deep blue water, and bright ripples added on top, moving the other way. They are made by `tools/waterTile.mjs`. With "reduce motion" set in the system, the water stays still. |
 | `Red-Token.png`, `GreenToken.png`, `Yellow-Token.png`, `blue-token.png` | `token-red.png` ... (128 x 128) | The pieces, cropped to the piece. |
 | `bg.png` | `bg-small.png` (half size) | The wooden background of the menu, settings, online and game screens (with a dark layer over it so text stays readable). |
 

@@ -6,6 +6,7 @@ import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
 import { getBoardRotation, gridRect, gridToPixel, rotateVector } from './geometry.js';
 import { boardRegions } from './boardRegions.js';
+import { drawWater } from './drawWater.js';
 import { isIdentity, mappingKey, recolor } from './recolor.js';
 import { PICTURE_CELLS } from '../config/boardPicture.js';
 
@@ -39,6 +40,7 @@ function drawBoardPicture(scene, palette) {
   if (!key) return false;
   const middle = gridToPixel(7.5, 7.5);
   const size = (BOARD * PICTURE_CELLS) / 15; // the picture shows a little more than the 15 x 15 cells (see config/boardPicture.js)
+  drawWater(scene, middle.x, middle.y, size); // shows through the picture's cut-out water
   scene.add.image(middle.x, middle.y, key).setDisplaySize(size, size).setAngle(getBoardRotation() * 90);
   return true;
 }
