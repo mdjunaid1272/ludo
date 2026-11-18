@@ -3,7 +3,7 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 
 // Prepares the pictures in img/elements for the game (npm run build:elements). The originals stay as they are; the game loads
 // the files made here:
-//   board.png        the board, warped so that every cell is exactly the same size and the 15 x 15 cells fill the picture
+//   board.png        the board (from ludo-board1.png), warped so that every cell is exactly the same size and the 15 x 15 cells fill the picture
 //                    (the artwork's cells vary a little in size and it has a frame, which the game's square grid cannot follow)
 //   token-<colour>.png   the four pieces, cropped to the piece and made small (they are drawn about 40 px wide)
 //   bg.png           the wooden background at half size
@@ -34,7 +34,7 @@ function bilinear(src, x, y) {
 }
 
 function buildBoard() {
-  const src = read('ludo-board.png');
+  const src = read('ludo-board1.png');
   const size = CELL_PX * 15;
   const pixels = Buffer.alloc(size * size * 4);
   // Each output cell is filled from the matching cell of the artwork (stretched a little to fit).

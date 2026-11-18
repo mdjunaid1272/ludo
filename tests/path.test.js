@@ -143,13 +143,13 @@ describe('positionFor', () => {
     }
   });
 
-  it('puts every yard spot where a hole of the board picture is (measured from img/elements/ludo-board.png)', () => {
+  it('puts every yard spot where a hole of the board picture is (measured from img/elements/ludo-board1.png)', () => {
     // hole centres in cells from the picture's top left corner, found by tools/holes scan; the game must agree with them within 0.05 cell
     const holes = {
-      red: [[1.64, 1.71], [3.53, 1.71], [1.64, 3.62], [3.53, 3.62]],
-      green: [[11.38, 1.74], [13.27, 1.74], [11.38, 3.65], [13.27, 3.65]],
-      yellow: [[11.4, 11.45], [13.24, 11.45], [11.4, 13.34], [13.24, 13.34]],
-      blue: [[1.64, 11.41], [3.52, 11.41], [1.64, 13.28], [3.52, 13.28]],
+      red: [[2.15, 1.97], [3.5, 1.97], [2.15, 3.35], [3.5, 3.35]],
+      green: [[11.34, 1.98], [12.76, 1.98], [11.34, 3.36], [12.76, 3.36]],
+      yellow: [[11.42, 11.27], [12.75, 11.27], [11.42, 12.68], [12.75, 12.68]],
+      blue: [[2.15, 11.31], [3.51, 11.31], [2.15, 12.65], [3.51, 12.65]],
     };
     for (const id of PLAYER_IDS) {
       holes[id].forEach(([x, y], i) => {
