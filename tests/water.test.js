@@ -52,16 +52,17 @@ describe('the moving water behind the board', () => {
     expect(sprites[0].blend).toBe(0);
   });
 
-  it('makes the layers drift, in different directions, every frame', () => {
+  it('makes the layers drift up and down (the water up, the ripples down), every frame, never sideways', () => {
     const { scene, sprites, listeners } = waterScene();
     drawWater(scene, 0, 0, 100);
     listeners.get('update')(0, 1000); // one second
-    expect(sprites[0].tilePositionX).toBeGreaterThan(0);
+    // a tile's position grows as the picture moves up the screen
     expect(sprites[0].tilePositionY).toBeGreaterThan(0);
-    expect(Math.sign(sprites[1].tilePositionX)).toBe(-Math.sign(sprites[0].tilePositionX));
-    const before = sprites[0].tilePositionX;
+    expect(sprites[1].tilePositionY).toBeLessThan(0);
+    for (const s of sprites) expect(s.tilePositionX).toBe(0);
+    const before = sprites[0].tilePositionY;
     listeners.get('update')(0, 1000);
-    expect(sprites[0].tilePositionX).toBeGreaterThan(before);
+    expect(sprites[0].tilePositionY).toBeGreaterThan(before);
   });
 
   it('does not jump after a long pause (a hidden tab)', () => {

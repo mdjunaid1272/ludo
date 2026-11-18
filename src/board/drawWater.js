@@ -1,10 +1,12 @@
 import { WATER_BASE_IMAGE, WATER_LIGHT_IMAGE } from '../config/assets.js';
 
 // The moving water behind the board. The board picture (img/elements/board.png) has its blue water cut out, so what shows through is
-// two repeating water pictures that drift slowly in different directions: deep blue water, and thin bright ripples added on top of it.
+// two repeating water pictures that drift slowly, one up and one down: deep blue water, and thin bright ripples added on top of it.
 // Returns the objects it made (to remove them), or [] when the pictures are not loaded or the person asked for less motion.
-const BASE = { scale: 2.2, speed: [9, 5] }; // the picture's size on screen (times its own) and how far it drifts per second
-const LIGHT = { scale: 1.6, speed: [-14, 8] };
+// The picture's size on screen (times its own) and how far it drifts per second, as [sideways, down]: the deep water drifts up,
+// the ripples drift down. (A tile sprite's picture moves up the screen as its tile position grows.)
+const BASE = { scale: 2.2, speed: [0, 10] };
+const LIGHT = { scale: 1.6, speed: [0, -14] };
 const ADD = 1; // Phaser's "add" blend mode
 const BEHIND_BOARD = -10; // above the page background, below the board and everything on it
 
