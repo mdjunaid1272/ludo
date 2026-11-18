@@ -86,6 +86,7 @@ export class GameScene extends Phaser.Scene {
       onExit: () => this.toMenu(),
       computers,
       vsComputer: mode === 'computer',
+      fixedDie: mode === 'local', // one shared die, always bottom left
       // Against the computer your own name is shown under your avatar, and ordinary-looking usernames under the others'
       // (the same ones all game: they come from the avatar seed, which survives a rotated screen).
       ...(mode === 'computer' ? { you: players[0], names: this.botNamesFor(players, avatarSeed) } : {}),
