@@ -6,7 +6,7 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 //   board.png        the board (from ludo-board1.png), warped so that every cell is exactly the same size and the 15 x 15 cells fill the picture
 //                    (the artwork's cells vary a little in size and it has a frame, which the game's square grid cannot follow)
 //   token-<colour>.png   the four pieces, cropped to the piece and made small (they are drawn about 40 px wide)
-//   bg.png           the wooden background at half size
+//   bg-small.png     the background (from bg2.png) at half size
 const DIR = new URL('../img/elements/', import.meta.url);
 const read = (name) => decodePng(fs.readFileSync(new URL(name, DIR)));
 const write = (name, image) => {
@@ -88,5 +88,5 @@ function buildToken(colour, file) {
 
 buildBoard();
 for (const [colour, file] of Object.entries(TOKENS)) buildToken(colour, file);
-const bg = read('bg.png');
+const bg = read('bg2.png');
 write('bg-small.png', downscale(bg, 0.5));
