@@ -70,9 +70,9 @@ export class GameScene extends Phaser.Scene {
     const avatarSeed = this.sceneData.avatarSeed ?? newAvatarSeed();
     this.sceneData = { ...this.sceneData, avatarSeed };
 
-    // Against the computer the board is turned so that your colour is in the bottom left corner (it is the first seat).
-    // In Local Multiplayer nobody owns a colour, so the board keeps its usual orientation.
-    setBoardRotation(mode === 'computer' ? turnsToBottomLeft(players[0]) : 0);
+    // The board is turned so that the first (main) player's colour, and so their die, is in the bottom left corner:
+    // against the computer and in Local Multiplayer.
+    setBoardRotation(mode === 'computer' || mode === 'local' ? turnsToBottomLeft(players[0]) : 0);
     drawBoard(this, { activePlayers: players });
     drawSafeCells(this);
 
