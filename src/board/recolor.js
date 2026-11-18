@@ -47,14 +47,31 @@ export const isIdentity = (mapping) => FAMILIES.every((f) => (mapping[f] ?? f) =
 // A text key for a mapping, to cache the repainted picture under.
 export const mappingKey = (mapping) => FAMILIES.map((f) => mapping[f] ?? f).join('-');
 
+// Region codes for a picture that has more than the four families in it (water, grass, a gold frame): one per pixel, saying where
+// repainting is allowed. REGION_NONE leaves the pixel alone, REGION_ANY repaints it by its own hue (the centre triangles), and a
+// family's number (1 + its place in FAMILIES: red 1, yellow 2, green 3, blue 4) repaints it only when its hue is near that family's.
+export const REGION_NONE = 0;
+export const REGION_ANY = 5;
+export const regionOfFamily = (family) => 1 + FAMILIES.indexOf(family);
+const REGION_HUE_RANGE = 40; // degrees either side of the family's hue
+
 // Repaints `data` (RGBA bytes, changed in place): a pixel of family f becomes colour mapping[f]. Returns data.
-export function recolor(data, mapping) {
+// `regions` (optional, a Uint8Array with one code per pixel) restricts which pixels are repainted, see above.
+export function recolor(data, mapping, regions = null) {
   const shift = {};
   for (const f of FAMILIES) shift[f] = FAMILY_HUE[mapping[f] ?? f] - FAMILY_HUE[f];
   for (let i = 0; i < data.length; i += 4) {
+    const code = regions ? regions[i >> 2] : REGION_ANY;
+    if (code === REGION_NONE) continue;
     const [h, s, v] = rgbToHsv(data[i], data[i + 1], data[i + 2]);
     if (s < MIN_SATURATION || v < MIN_VALUE) continue;
-    const delta = shift[familyOf(h)];
+    let family;
+    if (code === REGION_ANY) family = familyOf(h);
+    else {
+      family = FAMILIES[code - 1];
+      if (hueDistance(h, FAMILY_HUE[family]) > REGION_HUE_RANGE) continue;
+    }
+    const delta = shift[family];
     if (delta === 0) continue;
     const [r, g, b] = hsvToRgb((h + delta + 360) % 360, s, v);
     data[i] = r;

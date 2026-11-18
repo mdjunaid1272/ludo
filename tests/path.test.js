@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   TRACK_CELLS, TRACK_LENGTH, START_INDEX, STAR_INDICES, SAFE_INDICES, HOME_LANE_CELLS, HOME_SPOT,
   YARD_CORNER, YARD_SLOTS, PLAYER_IDS, IN_YARD, FINISHED, positionFor, absIndexFor,
@@ -127,10 +127,10 @@ describe('positionFor', () => {
     }
   });
 
-  it('has finishing spots that are the previous colour rotated 90 degrees, and yard spots that are nearly so', () => {
-    // The yard spots are the holes of the board picture, which is not perfectly symmetric (see YARD_SLOTS): within half a cell.
+  it('has finishing spots that are the previous colour rotated 90 degrees', () => {
+    // (The yard spots are not tested like this: they are the holes of the board picture, whose yards are not placed symmetrically, see YARD_SLOTS.)
     for (const id of PLAYER_IDS) {
-      for (const [p, tolerance] of [[FINISHED, 1e-9], [IN_YARD, 0.5]]) {
+      for (const [p, tolerance] of [[FINISHED, 1e-9]]) {
         for (let i = 0; i < 4; i++) {
           const rotated = rotatePoint(positionFor(id, p, i));
           const targets = [0, 1, 2, 3].map((j) => positionFor(next(id), p, j));
@@ -143,13 +143,13 @@ describe('positionFor', () => {
     }
   });
 
-  it('puts every yard spot where a hole of the board picture is (measured from img/elements/ludo-board1.png)', () => {
+  it('puts every yard spot where a hole of the board picture is (measured from img/elements/ludo-board2.png, turned a quarter)', () => {
     // hole centres in cells from the picture's top left corner, found by tools/holes scan; the game must agree with them within 0.05 cell
     const holes = {
-      red: [[2.15, 1.97], [3.5, 1.97], [2.15, 3.35], [3.5, 3.35]],
-      green: [[11.34, 1.98], [12.76, 1.98], [11.34, 3.36], [12.76, 3.36]],
-      yellow: [[11.42, 11.27], [12.75, 11.27], [11.42, 12.68], [12.75, 12.68]],
-      blue: [[2.15, 11.31], [3.51, 11.31], [2.15, 12.65], [3.51, 12.65]],
+      red: [[1.77, 1.76], [3.5, 1.76], [1.75, 3.49], [3.49, 3.49]],
+      green: [[11.53, 1.8], [13.13, 1.81], [11.55, 3.51], [13.12, 3.51]],
+      yellow: [[11.59, 11.62], [13.17, 11.62], [11.57, 13.26], [13.17, 13.26]],
+      blue: [[1.75, 11.6], [3.46, 11.6], [1.75, 13.25], [3.46, 13.25]],
     };
     for (const id of PLAYER_IDS) {
       holes[id].forEach(([x, y], i) => {

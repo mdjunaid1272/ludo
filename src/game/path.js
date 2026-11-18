@@ -39,12 +39,12 @@ export const HOME_SPOT = {
 };
 
 // Token spots inside each yard, as offsets from the yard corner, one set per colour: they are the four holes of that yard in the
-// board picture (img/elements/board.png, measured from it), which sit a little towards the board's outer corner.
+// board picture (img/elements/board.png, measured from it). The yards in the artwork are not centred on their 6 x 6 corner squares.
 export const YARD_SLOTS = {
-  red: [[2.15, 1.97], [3.5, 1.97], [2.15, 3.35], [3.5, 3.35]],
-  green: [[2.34, 1.98], [3.76, 1.98], [2.34, 3.36], [3.76, 3.36]],
-  yellow: [[2.42, 2.27], [3.75, 2.27], [2.42, 3.68], [3.75, 3.68]],
-  blue: [[2.15, 2.31], [3.51, 2.31], [2.15, 3.65], [3.51, 3.65]],
+  red: [[1.76, 1.76], [3.5, 1.76], [1.76, 3.49], [3.5, 3.49]],
+  green: [[2.54, 1.8], [4.13, 1.8], [2.54, 3.51], [4.13, 3.51]],
+  yellow: [[2.58, 2.62], [4.17, 2.62], [2.58, 4.26], [4.17, 4.26]],
+  blue: [[1.75, 2.6], [3.46, 2.6], [1.75, 4.25], [3.46, 4.25]],
 };
 export const YARD_CORNER = { red: [0, 0], green: [9, 0], yellow: [9, 9], blue: [0, 9] };
 

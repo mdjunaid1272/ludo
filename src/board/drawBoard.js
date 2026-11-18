@@ -5,7 +5,9 @@ import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } fr
 import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
 import { getBoardRotation, gridRect, gridToPixel, rotateVector } from './geometry.js';
+import { boardRegions } from './boardRegions.js';
 import { isIdentity, mappingKey, recolor } from './recolor.js';
+import { PICTURE_CELLS } from '../config/boardPicture.js';
 
 // The board picture (img/elements/board.png) for this screen's colours, as the key of a loaded texture: the picture itself when every
 // seat is painted in its own colour, otherwise a copy repainted for the palette (made once and kept). Null when the picture is not
@@ -25,7 +27,7 @@ function boardTexture(scene, palette) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(source, 0, 0);
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  recolor(pixels.data, mapping);
+  recolor(pixels.data, mapping, boardRegions(canvas.width));
   ctx.putImageData(pixels, 0, 0);
   textures.addCanvas(key, canvas);
   return key;
@@ -36,7 +38,8 @@ function drawBoardPicture(scene, palette) {
   const key = boardTexture(scene, palette);
   if (!key) return false;
   const middle = gridToPixel(7.5, 7.5);
-  scene.add.image(middle.x, middle.y, key).setDisplaySize(BOARD, BOARD).setAngle(getBoardRotation() * 90);
+  const size = (BOARD * PICTURE_CELLS) / 15; // the picture shows a little more than the 15 x 15 cells (see config/boardPicture.js)
+  scene.add.image(middle.x, middle.y, key).setDisplaySize(size, size).setAngle(getBoardRotation() * 90);
   return true;
 }
 
