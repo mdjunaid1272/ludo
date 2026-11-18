@@ -15,3 +15,6 @@ archives/
 
 # Windows / Google Drive folder markers
 desktop.ini
+
+# an unzipped copy of the HTML5 build (not source)
+ludo-h5/

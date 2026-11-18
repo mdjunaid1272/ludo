@@ -4,7 +4,7 @@ import globals from 'globals';
 // Catches mistakes that tests and "vite build" can miss, such as an undefined name inside a
 // function that no test happens to run, or an import that is no longer used.
 export default [
-  { ignores: ['dist/', 'node_modules/', 'archives/'] },
+  { ignores: ['dist/', 'node_modules/', 'archives/', 'ludo-h5/'] },
   js.configs.recommended,
   {
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
