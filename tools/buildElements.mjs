@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import { BOARD_MARGIN_CELLS } from '../src/config/boardPicture.js';
+import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } from '../src/game/path.js';
 import { decodePng, downscale, encodePng } from './png.mjs';
+import { makeWaterBase, makeWaterLight } from './waterTile.mjs';
 
 // Prepares the pictures in img/elements for the game (npm run build:elements). The originals stay as they are; the game loads
 // the files made here:
@@ -8,6 +10,8 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 //                    cell is exactly the same size and the 15 x 15 cells fill the picture (the artwork's cells vary a little in size and
 //                    the grid is not centred in it, which the game's square grid cannot follow). A small margin of the artwork round the
 //                    grid is kept (BOARD_MARGIN_CELLS), so the yards' rims are not cut off.
+//                    The blue water inside the board is cut out (made see-through), so moving, wavy water shows through it.
+//   water-base.png, water-light.png   the two seamless water pictures that move behind the board (tools/waterTile.mjs)
 //   board-top.png, board-bottom.png   the water of ludo-board3.png above and below the board, as it is in the artwork (not turned or
 //                    warped), as wide as board.png; the edge next to the board fades out, over the margin, into board.png
 //   dice.png         the six faces of the die from dice-sheet.png, in a sheet of 3 x 2 cells of 128 px (faces 1 2 3 on the top row, 4 5 6 below),
@@ -90,7 +94,7 @@ function buildBoard() {
       pixels[i] = r; pixels[i + 1] = g; pixels[i + 2] = b; pixels[i + 3] = a;
     }
   }
-  for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255; // (the artwork has a few see-through pixels at its very edges)
+  cutOutWater(pixels, size);
   write('board.png', { width: size, height: size, pixels });
 }
 
@@ -112,6 +116,86 @@ function buildStrips() {
   };
   make('board-top.png', EDGE_ROWS, BOARD3_TOP - EDGE_ROWS, true);
   make('board-bottom.png', BOARD3_TOP + BOARD3_ROWS, full.height - EDGE_ROWS - (BOARD3_TOP + BOARD3_ROWS), false);
+}
+
+// Makes the water see-through: the more blue a pixel is (blue well above red and green), the more transparent it gets, with a soft
+// edge. Only the water counts: blue pixels that can be reached from the picture's border through blue pixels. The blue player's
+// yard panel and home column are as blue as the water, but the gold frame and the stone cells shut them in, so they stay as they are.
+function cutOutWater(pixels, size) {
+  const smooth = (a, b, x) => {
+    const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  const blueness = (p) => pixels[p * 4 + 2] - Math.max(pixels[p * 4], pixels[p * 4 + 1]);
+  const water = new Uint8Array(size * size);
+  const stack = [];
+  const push = (p) => {
+    if (!water[p] && blueness(p) >= 25) {
+      water[p] = 1;
+      stack.push(p);
+    }
+  };
+  for (let i = 0; i < size; i++) {
+    push(i); push((size - 1) * size + i); push(i * size); push(i * size + size - 1);
+  }
+  const spread = () => {
+    while (stack.length) {
+      const p = stack.pop();
+      const x = p % size;
+      if (x > 0) push(p - 1);
+      if (x < size - 1) push(p + 1);
+      if (p >= size) push(p - size);
+      if (p < size * (size - 1)) push(p + size);
+    }
+  };
+  spread();
+  // Pockets of water the border cannot reach (a seam of leaves or stone cuts them off): any other big blue area is water too, except
+  // the ones the blue player's yard panel, home column and the centre triangle are in.
+  const margin = Math.round(BOARD_MARGIN_CELLS * CELL_PX);
+  const at = (cx, cy) => margin + Math.round(cx * CELL_PX) + (margin + Math.round(cy * CELL_PX)) * size;
+  const keepSeeds = [
+    ...YARD_SLOTS.blue.map(([dx, dy]) => at(YARD_CORNER.blue[0] + dx, YARD_CORNER.blue[1] + dy)),
+    ...[...HOME_LANE_CELLS.blue, TRACK_CELLS[START_INDEX.blue]].flatMap(([c, r]) => [0.15, 0.85].flatMap((u) => [0.15, 0.85].map((v) => at(c + u, r + v)))),
+    at(7.5, 8.4),
+  ];
+  const label = new Int32Array(size * size);
+  let next = 0;
+  const keep = new Set();
+  for (let start = 0; start < size * size; start++) {
+    if (water[start] || label[start] || blueness(start) < 25) continue;
+    next++;
+    const members = [start];
+    label[start] = next;
+    for (let k = 0; k < members.length; k++) {
+      const p = members[k];
+      const x = p % size;
+      for (const q of [x > 0 ? p - 1 : -1, x < size - 1 ? p + 1 : -1, p - size, p + size]) {
+        if (q < 0 || q >= size * size || water[q] || label[q] || blueness(q) < 25) continue;
+        label[q] = next;
+        members.push(q);
+      }
+    }
+    if (members.length < 1500) continue;
+    if (keepSeeds.some((s) => label[s] === next)) keep.add(next);
+    else for (const p of members) { water[p] = 1; stack.push(p); }
+  }
+  stack.length = 0;
+  // soft edge: the transparency follows how blue the pixel is, but only for the pixels the water reaches (and the ones just beside them)
+  const near = new Uint8Array(size * size);
+  for (let p = 0; p < size * size; p++) {
+    if (!water[p]) continue;
+    const x = p % size;
+    const y = (p - x) / size;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && ny >= 0 && nx < size && ny < size) near[ny * size + nx] = 1;
+    }
+  }
+  for (let p = 0; p < size * size; p++) {
+    if (!water[p] && !near[p]) continue;
+    pixels[p * 4 + 3] = Math.round(255 * (1 - smooth(25, 55, blueness(p))));
+  }
 }
 
 // --- the die ------------------------------------------------------------------------------------------------------------
@@ -186,6 +270,8 @@ function buildToken(colour, file) {
 
 buildBoard();
 buildStrips();
+write('water-base.png', makeWaterBase());
+write('water-light.png', makeWaterLight());
 buildDice();
 for (const [colour, file] of Object.entries(TOKENS)) buildToken(colour, file);
 const bg = read('bg2.png');

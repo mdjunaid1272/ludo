@@ -6,6 +6,7 @@ import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
 import { getBoardRotation, gridRect, gridToPixel, rotateVector } from './geometry.js';
 import { boardRegions } from './boardRegions.js';
+import { drawWater } from './drawWater.js';
 import { isIdentity, mappingKey, recolor } from './recolor.js';
 import { BOARD_MARGIN_CELLS, PICTURE_CELLS } from '../config/boardPicture.js';
 
@@ -55,6 +56,8 @@ function drawBoardPicture(scene, palette) {
   if (!key) return false;
   const middle = gridToPixel(7.5, 7.5);
   const size = (BOARD * PICTURE_CELLS) / 15; // the picture shows a little more than the 15 x 15 cells (see config/boardPicture.js)
+  // The picture's own water (between the yards and the arms of the track) is cut out: moving, wavy water shows through it.
+  drawWater(scene, middle.x, middle.y, size);
   scene.add.image(middle.x, middle.y, key).setDisplaySize(size, size).setAngle(getBoardRotation() * 90);
   drawBoardWater(scene, middle, size); // (made after the board, so its faded edge lies over the board picture's margin)
   return true;
