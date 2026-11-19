@@ -20,7 +20,9 @@ export class Token {
     this.pulse = null;
     this.haloTween = null;
 
-    const shadow = scene.add.ellipse(2, RADIUS * 0.6, RADIUS * 1.7, RADIUS * 0.9, 0x000000, 0.3);
+    // The shadow lies on the board under the foot of the pawn (the picture is drawn centred, so its foot is half a picture below the
+    // middle), a little wider than the foot.
+    const shadow = scene.add.ellipse(CELL * 0.03, PICTURE * 0.44, PICTURE * 0.8, PICTURE * 0.26, 0x000000, 0.4);
     this.halo = scene.add.circle(0, 0, RADIUS * 1.3).setStrokeStyle(4, UI.accent).setVisible(false);
     // The piece is drawn in the colour this screen paints the seat in (player.colorId; see config/palette.js).
     const key = tokenImageKey(player.colorId ?? player.id);
