@@ -113,7 +113,7 @@ function buildStrips() {
 }
 
 // --- the pieces ----------------------------------------------------------------------------------------------------------
-const TOKENS = { red: 'Red-Token.png', green: 'GreenToken.png', yellow: 'Yellow-Token.png', blue: 'blue-token.png' };
+const TOKENS = { red: 'Red-T.png', green: 'Green-T.png', yellow: 'Yellow-T.png', blue: 'Blue-T.png' };
 const TOKEN_PX = 128; // the piece's width in the made picture
 
 function buildToken(colour, file) {
