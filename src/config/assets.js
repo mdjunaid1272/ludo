@@ -2,6 +2,8 @@ import computerUrl from '../../img/buttons/player-vs-computer-button.png';
 import friendsUrl from '../../img/buttons/with-friends-button.png';
 import localUrl from '../../img/buttons/local-multiplayer-button.png';
 import onlineUrl from '../../img/buttons/play-online-button.png';
+import menuButtonUrl from '../../img/buttons/menu-button-small.png'; // 256 px copies of menu-button.png and restart-button.png (tools/shrinkImage.mjs)
+import restartButtonUrl from '../../img/buttons/restart-button-small.png';
 import settingsUrl from '../../img/buttons/setting-button-small.png'; // a 320 px copy of setting-button.png (tools/shrinkImage.mjs)
 import backgroundUrl from '../../img/elements/bg-small.png';
 import boardUrl from '../../img/elements/board.png';
@@ -36,6 +38,8 @@ export const MENU_BUTTON_IMAGES = [
   { key: 'btn-online', url: onlineUrl },
   { key: 'btn-friends', url: friendsUrl },
   { key: 'btn-settings', url: settingsUrl },
+  { key: 'btn-menu', url: menuButtonUrl }, // the Menu and Restart buttons of the game screen
+  { key: 'btn-restart', url: restartButtonUrl },
 ];
 
 // The board, the four pieces and the wooden background (img/elements, made by tools/buildElements.mjs). If one is missing the

@@ -13,14 +13,23 @@ export class ImageButton extends Phaser.GameObjects.Container {
     this.label = label ? addText(scene, 0, cellH / 2 - (labelFont * 1.3 * labelLines) / 2, label, { fontSize: `${labelFont}px`, color: '#ffffff', align: 'center', wordWrap: { width: labelWrap } }).setOrigin(0.5) : null;
     this.add(this.label ? [picture, this.label] : [picture]);
 
+    this.enabled = true;
     this.setSize(tileW, cellH);
     this.setInteractive({ useHandCursor: true });
-    this.on('pointerover', () => scene.tweens.add({ targets: this, scale: 1.05, duration: 100 }));
+    this.on('pointerover', () => this.enabled && scene.tweens.add({ targets: this, scale: 1.05, duration: 100 }));
     this.on('pointerout', () => scene.tweens.add({ targets: this, scale: 1, duration: 100 }));
     this.on('pointerdown', () => {
+      if (!this.enabled) return;
       scene.tweens.add({ targets: this, scale: 0.95, duration: 60, yoyo: true });
       onClick?.();
     });
     scene.add.existing(this);
+  }
+
+  // A disabled button is dimmed and does nothing when it is tapped.
+  setEnabled(enabled) {
+    this.enabled = enabled;
+    this.setAlpha(enabled ? 1 : 0.4);
+    return this;
   }
 }
