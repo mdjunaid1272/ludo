@@ -206,6 +206,11 @@ export class PhaserGameView {
     this.hud.setStatus('', this.palette.textColor(player));
   }
 
+  // The move is played: the die shrinks to nothing (it grows again, next to the next player, when their turn starts).
+  hideDice() {
+    return this.dice.hide();
+  }
+
   setRollEnabled(enabled) {
     this.dice.setReady(enabled);
   }

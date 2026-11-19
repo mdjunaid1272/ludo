@@ -201,6 +201,7 @@ export class OnlineGame {
     if (state.phase === PHASE.END) {
       view.showNoMoves(m.player, m.value, state.forfeited);
       await view.pause(NO_MOVE_PAUSE_MS);
+      await view.hideDice?.();
     } else if (m.player === this.myColor && !m.auto && !m.ai && !m.autoMove) {
       view.showPickToken(m.player, m.value);
       view.setMovable(state.legalMoves());
@@ -227,6 +228,7 @@ export class OnlineGame {
       await view.animateCaptures(m.captured);
     }
     await view.settle();
+    await view.hideDice?.(); // the move is played: the die shrinks away until the next turn
     if (state.phase === PHASE.GAME_OVER) {
       view.showRanks?.(state.rankings);
       await view.showWinner(state.winner);

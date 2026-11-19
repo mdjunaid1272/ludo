@@ -36,8 +36,10 @@ function fakeScene() {
 
 const makeDie = () => {
   const { scene, tweens } = fakeScene();
-  const die = new Dice(scene, { tween: async () => {}, delay: async () => {} }, 100, 200, 72);
-  return { die, tweens };
+  const animated = []; // what the die asked the animator to tween
+  const animator = { tween: async (target, props, ms, ease) => { animated.push({ target, props, ms, ease }); }, delay: async () => {} };
+  const die = new Dice(scene, animator, 100, 200, 72);
+  return { die, tweens, animated };
 };
 
 describe('the die at the start of a turn', () => {
@@ -105,5 +107,43 @@ describe('the die at the start of a turn', () => {
     expect(tweens[0].stopped).toBe(true);
     expect(die.appearing).toBe(false);
     expect(die.value).toBe(4);
+  });
+});
+
+describe('the die once the move of the turn is played', () => {
+  it('shrinks from its size to nothing', async () => {
+    const { die, animated } = makeDie();
+    await die.hide();
+    expect(animated).toHaveLength(1);
+    expect(animated[0].target).toBe(die.gfx);
+    expect(animated[0].props).toEqual({ scale: 0 });
+    expect(animated[0].ms).toBeGreaterThan(0);
+  });
+
+  it('stops pulsing and cannot be clicked while it is gone', async () => {
+    const { die, tweens } = makeDie();
+    die.setReady(true);
+    expect(die.hit.interactive).toBe(true);
+    await die.hide();
+    expect(tweens[0].stopped).toBe(true); // the pulse
+    expect(die.hit.interactive).toBe(false);
+  });
+
+  it('stops a growing that has not finished', async () => {
+    const { die, tweens } = makeDie();
+    die.appear(300, 700);
+    await die.hide();
+    expect(tweens[0].stopped).toBe(true);
+    expect(die.appearing).toBe(false);
+  });
+
+  it('grows again at the next turn', async () => {
+    const { die, tweens } = makeDie();
+    await die.hide();
+    die.appear(10, 20);
+    expect(die.gfx.scale).toBe(0);
+    tweens.at(-1).finish();
+    expect(die.gfx.scale).toBe(die.base);
+    expect([die.gfx.x, die.gfx.y]).toEqual([10, 20]);
   });
 });

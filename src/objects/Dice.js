@@ -13,6 +13,7 @@ const PIPS = {
   6: [[0.28, 0.25], [0.72, 0.25], [0.28, 0.5], [0.72, 0.5], [0.28, 0.75], [0.72, 0.75]],
 };
 
+const HIDE_MS = 260; // how long the die takes to shrink away once the turn's move is played
 const APPEAR_MS = 420; // how long the die takes to grow to its size at the start of a turn
 const PICTURE = SIZE * 1.02; // the face picture's size (the die in it fills 118 of its 128 pixels, so the die is a little under SIZE)
 
@@ -124,6 +125,19 @@ export class Dice extends Phaser.Events.EventEmitter {
         if (this.ready) this.startPulse(); // it was made ready while it was still growing
       },
     });
+  }
+
+  // Shrinks from its size to nothing. Resolves when it is gone.
+  hide() {
+    this.moveTween?.stop();
+    this.moveTween = null;
+    this.appearTween?.stop();
+    this.appearTween = null;
+    this.appearing = false;
+    this.pulse?.stop();
+    this.pulse = null;
+    this.hit.disableInteractive();
+    return this.animator.tween(this.gfx, { scale: 0 }, HIDE_MS, 'Back.easeIn');
   }
 
   startPulse() {

@@ -19,6 +19,7 @@ const MAX_AI_FAILURES = 3;
 // The view must provide (animation methods return promises; they may reject with Cancelled):
 //   showTurn(player, extra)            setRollEnabled(bool)        setMovable(tokenIndexes)
 //   showRollResult(value)  (show a die face without animating, used when resuming)
+//   hideDice()  (optional: the die shrinks away once the turn's move is played)
 //   animateRoll(value)  -> Promise     showPickToken(player, value)
 //   showAiPick(tokenIndex)  (a computer has chosen this token)
 //   showNoMoves(player, value, forfeited)  pause(ms) -> Promise
@@ -119,6 +120,8 @@ export class TurnController {
       view.showNoMoves(state.currentPlayer, value, state.forfeited);
       await view.pause(NO_MOVE_PAUSE_MS);
       this.#alive();
+      await view.hideDice?.();
+      this.#alive();
       this.#finishTurn();
       return false;
     }
@@ -158,6 +161,8 @@ export class TurnController {
       this.#alive();
     }
     await view.settle();
+    this.#alive();
+    await view.hideDice?.(); // the move is played: the die shrinks away until the next turn
     this.#alive();
 
     if (state.phase === PHASE.GAME_OVER) {
