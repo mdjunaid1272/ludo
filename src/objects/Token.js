@@ -6,7 +6,7 @@ import { positionFor } from '../game/path.js';
 import { UI } from '../ui/theme.js';
 
 const RADIUS = CELL * 0.34;
-const PICTURE = CELL * 1.1; // the size of the square the piece's picture is drawn in (the gold-ringed pawns in img/elements; a pawn is taller than wide)
+const PICTURE = CELL * 0.9; // the size of the square the piece's picture is drawn in (the gold-ringed pawns in img/elements; a pawn is taller than wide)
 
 // A single game piece: shadow, the piece's picture (or, without it, a coloured body, ring and shine) and a "can move" halo, grouped in a
 // container. All animation goes through the Animator so it is cancelled safely on shutdown.

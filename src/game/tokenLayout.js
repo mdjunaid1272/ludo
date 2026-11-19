@@ -2,7 +2,7 @@
 
 export const tokenKey = (color, index) => `${color}-${index}`;
 
-const STACK_RADIUS = 0.2; // grid units: how far stacked tokens fan out from the cell centre
+const STACK_RADIUS = 0.26; // grid units: how far stacked tokens fan out from the cell centre
 
 // Pure layout: where each token sits, in grid units, and at what scale.
 // Tokens sharing a track cell (any colour) are shrunk and fanned out so none is hidden.
@@ -22,7 +22,7 @@ export function computeTokenSlots(tokens) {
   const slots = new Map();
   for (const group of groups.values()) {
     const n = group.length;
-    const scale = n === 1 ? 1 : n === 2 ? 0.75 : 0.62;
+    const scale = n === 1 ? 1 : n === 2 ? 0.7 : 0.55;
     group.forEach(({ key, gx, gy }, k) => {
       const angle = (2 * Math.PI * k) / n - Math.PI / 2;
       const r = n > 1 ? STACK_RADIUS : 0;

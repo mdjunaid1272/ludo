@@ -33,10 +33,10 @@ describe('computeTokenSlots', () => {
       const slots = computeTokenSlots(all({ red: progress }));
       const group = [0, 1, 2, 3].slice(0, n).map((i) => slots.get(tokenKey('red', i)));
       const cell = positionFor('red', 7, 0);
-      const scale = n === 2 ? 0.75 : 0.62;
+      const scale = n === 2 ? 0.7 : 0.55;
       for (const s of group) {
         expect(s.scale).toBe(scale);
-        expect(dist(s, cell)).toBeCloseTo(0.2, 6);
+        expect(dist(s, cell)).toBeCloseTo(0.26, 6);
       }
       for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) expect(dist(group[a], group[b])).toBeGreaterThan(0.1);
       expect(group.reduce((sum, s) => sum + s.gx, 0) / n).toBeCloseTo(cell.gx, 6);
@@ -47,8 +47,8 @@ describe('computeTokenSlots', () => {
   it('groups tokens of different colours that share a cell', () => {
     const greenOnRed3 = (3 - START_INDEX.green + 52) % 52;
     const slots = computeTokenSlots(all({ red: [3, -1, -1, -1], green: [greenOnRed3, -1, -1, -1] }));
-    expect(slots.get(tokenKey('red', 0)).scale).toBe(0.75);
-    expect(slots.get(tokenKey('green', 0)).scale).toBe(0.75);
+    expect(slots.get(tokenKey('red', 0)).scale).toBe(0.7);
+    expect(slots.get(tokenKey('green', 0)).scale).toBe(0.7);
   });
 
   it('does not group tokens on different cells', () => {
