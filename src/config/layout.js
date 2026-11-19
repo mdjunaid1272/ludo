@@ -303,7 +303,7 @@ function settingsLayout({ landscape, width, height, ui }) {
     cols, colW, margin, step, rowH: step - 10, rowTop, btnW, btnH, btnFont, compact,
     titleY, titleFont,
     labelFont, descFont, showDesc, labelRoom,
-    footerY, footerH, footerFont: ui(22, 15), resetW: 300, backW: 240,
+    footerY, footerH, footerFont: ui(22, 15), resetW: 300, backW: 300, // the two footer buttons (their pictures too) are the same size
     rowRect: (i) => {
       const col = Math.floor(i / perCol);
       const row = i % perCol;
