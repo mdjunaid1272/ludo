@@ -6,6 +6,7 @@ import { positionFor } from '../game/path.js';
 import { UI } from '../ui/theme.js';
 
 const RADIUS = CELL * 0.34;
+const LIFT = CELL * 0.16; // the pawn's picture stands this much above the cell's centre, so its foot does not reach into the cell below
 const PICTURE = CELL * 0.9; // the size of the square the piece's picture is drawn in (the gold-ringed pawns in img/elements; a pawn is taller than wide)
 
 // A single game piece: shadow, the piece's picture (or, without it, a coloured body, ring and shine) and a "can move" halo, grouped in a
@@ -22,13 +23,13 @@ export class Token {
 
     // The shadow lies on the board under the foot of the pawn (the picture is drawn centred, so its foot is half a picture below the
     // middle), a little wider than the foot.
-    const shadow = scene.add.ellipse(CELL * 0.03, PICTURE * 0.44, PICTURE * 0.8, PICTURE * 0.26, 0x000000, 0.4);
+    const shadow = scene.add.ellipse(CELL * 0.03, PICTURE * 0.44 - LIFT, PICTURE * 0.8, PICTURE * 0.26, 0x000000, 0.4);
     this.halo = scene.add.circle(0, 0, RADIUS * 1.3).setStrokeStyle(4, UI.accent).setVisible(false);
     // The piece is drawn in the colour this screen paints the seat in (player.colorId; see config/palette.js).
     const key = tokenImageKey(player.colorId ?? player.id);
     let looks;
     if (scene.textures?.exists?.(key)) {
-      looks = [scene.add.image(0, 0, key).setDisplaySize(PICTURE, PICTURE)];
+      looks = [scene.add.image(0, -LIFT, key).setDisplaySize(PICTURE, PICTURE)];
     } else {
       const body = scene.add.circle(0, 0, RADIUS, player.color).setStrokeStyle(4, 0x1b1f2a);
       const ring = scene.add.circle(0, 0, RADIUS * 0.62).setStrokeStyle(2, 0xffffff, 0.55);
