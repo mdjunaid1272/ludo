@@ -418,7 +418,7 @@ function setupLayout({ width, height, ui }) {
   const titleFont = fit(SETUP_TITLE.length, ui(34, 20));
   const promptFont = fit(Math.max(...SETUP_PROMPTS.map((p) => p.length)), ui(22, 14));
   const btnH = ui(80, MIN_TOUCH);
-  const backH = ui(56, MIN_TOUCH);
+  const backH = ui(67, MIN_TOUCH); // (the Cancel / Back / Start buttons)
   const h = pad + titleFont * 1.2 + 12 + promptFont * 1.3 + gap + btnH + gap + backH + pad;
   const top = (height - h) / 2;
   const titleY = top + pad + titleFont * 0.6;
@@ -430,7 +430,7 @@ function setupLayout({ width, height, ui }) {
   const colorW = (inner - colorGap * 3) / 4;
   return {
     w, h, top, cx: width / 2, cy: height / 2,
-    titleY, titleFont, promptY, promptFont, rowY, btnH, backY, backH, backW: 200, footGap: 16, backFont: ui(20, 14),
+    titleY, titleFont, promptY, promptFont, rowY, btnH, backY, backH, backW: 240, footGap: 16, backFont: ui(20, 14),
     countW: Math.min(150, (inner - countGap * 2) / 3), countGap, countFont: 40,
     colorW, colorGap, colorFont: Math.min(ui(20, 14), (colorW - 16) / estimateTextWidth('YELLOW'.length, 1)),
   };
