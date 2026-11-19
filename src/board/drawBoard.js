@@ -1,4 +1,4 @@
-import { BOARD_IMAGE } from '../config/assets.js';
+import { BOARD_BOTTOM_IMAGE, BOARD_IMAGE, BOARD_TOP_IMAGE } from '../config/assets.js';
 import { CELL, COLORS, PLAYERS } from '../config/constants.js';
 import { BOARD, layout } from '../config/layout.js';
 import { HOME_LANE_CELLS, START_INDEX, TRACK_CELLS, YARD_CORNER, YARD_SLOTS } from '../game/path.js';
@@ -6,9 +6,8 @@ import { IDENTITY_PALETTE } from '../config/palette.js';
 import { addText } from '../ui/SpriteText.js';
 import { getBoardRotation, gridRect, gridToPixel, rotateVector } from './geometry.js';
 import { boardRegions } from './boardRegions.js';
-import { drawWater } from './drawWater.js';
 import { isIdentity, mappingKey, recolor } from './recolor.js';
-import { PICTURE_CELLS } from '../config/boardPicture.js';
+import { BOARD_MARGIN_CELLS, PICTURE_CELLS } from '../config/boardPicture.js';
 
 // The board picture (img/elements/board.png) for this screen's colours, as the key of a loaded texture: the picture itself when every
 // seat is painted in its own colour, otherwise a copy repainted for the palette (made once and kept). Null when the picture is not
@@ -34,18 +33,20 @@ function boardTexture(scene, palette) {
   return key;
 }
 
-// How far the water reaches above and below the board picture on a tall screen (the board's own picture, ludo-board3.png, has water
-// round it too): far enough to sit behind the rows of avatars and dice, and never more than that picture's own margin. None when the
-// screen is wide (the avatars stand beside the board) or has no rows round the board.
-const BOARD3_MARGIN = 468 / 1283; // that picture's water above the board, as a part of the board's height
-function waterBeyondBoard() {
-  if (layout.orientation !== 'portrait') return 0;
-  const above = layout.hud.diceSpot(false, false).y;
-  const below = layout.hud.diceSpot(false, true).y;
-  if (above === below) return 0;
-  const reach = layout.boardY - above + (layout.hud.avatar?.size ?? 0) * 0.4; // from the board edge to the outer edge of the avatars
-  const room = Math.min(layout.boardY, layout.height - layout.boardY - BOARD); // the water must stay on the screen
-  return Math.max(0, Math.min(reach, BOARD * BOARD3_MARGIN, room));
+// The water of the board artwork (ludo-board3.png) above and below the board, as it is in the artwork: two pictures as wide as the board
+// picture, each fading out at the edge next to the board so it joins the picture without a seam (see tools/buildElements.mjs).
+// Only on a tall screen: on a wide one the avatars stand beside the board.
+function drawBoardWater(scene, middle, size) {
+  if (layout.orientation !== 'portrait') return;
+  if (!scene.textures?.exists?.(BOARD_TOP_IMAGE) || !scene.textures.exists(BOARD_BOTTOM_IMAGE)) return;
+  const overlap = BOARD_MARGIN_CELLS * (BOARD / 15); // the margin of the board picture, which the faded edge lies over
+  const place = (key, y, originY) => {
+    const image = scene.add.image(middle.x, y, key).setOrigin(0.5, originY);
+    image.setDisplaySize(size, (image.height * size) / image.width);
+    return image;
+  };
+  place(BOARD_TOP_IMAGE, middle.y - size / 2 + overlap, 1);
+  place(BOARD_BOTTOM_IMAGE, middle.y + size / 2 - overlap, 0);
 }
 
 // Puts the board picture on the screen, turned with the board. Returns true if it did.
@@ -54,9 +55,8 @@ function drawBoardPicture(scene, palette) {
   if (!key) return false;
   const middle = gridToPixel(7.5, 7.5);
   const size = (BOARD * PICTURE_CELLS) / 15; // the picture shows a little more than the 15 x 15 cells (see config/boardPicture.js)
-  const extra = waterBeyondBoard(); // on a tall screen the water goes on above and below the board, behind the rows of avatars and dice
-  drawWater(scene, middle.x, middle.y, Math.max(size, layout.width), size + 2 * extra); // shows through the picture's cut-out water
   scene.add.image(middle.x, middle.y, key).setDisplaySize(size, size).setAngle(getBoardRotation() * 90);
+  drawBoardWater(scene, middle, size); // (made after the board, so its faded edge lies over the board picture's margin)
   return true;
 }
 
