@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { BOARD_MARGIN_CELLS } from '../src/config/boardPicture.js';
+import { POPUP_CROP, POPUP_MADE_WIDTH, POPUP_SOURCE } from '../src/config/setupPopup.js';
 import { decodePng, downscale, encodePng } from './png.mjs';
 
 // Prepares the pictures in img/elements for the game (npm run build:elements). The originals stay as they are; the game loads
@@ -10,6 +11,7 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 //                    grid is kept (BOARD_MARGIN_CELLS), so the yards' rims are not cut off.
 //   board-top.png, board-bottom.png   the water of ludo-board3.png above and below the board, as it is in the artwork (not turned or
 //                    warped), as wide as board.png; the edge next to the board fades out, over the margin, into board.png
+//   setup-popup.png  the "Player vs Computer / How many players?" popup from img/UI boards, cut to POPUP_CROP and scaled (src/config/setupPopup.js)
 //   dice.png         the six faces of the die from dice-sheet.png, in a sheet of 3 x 2 cells of 128 px (faces 1 2 3 on the top row, 4 5 6 below),
 //                    each cropped to the die and made the same size, centred in its cell
 //   token-<colour>.png   the four pieces, cropped to the piece and made small (they are drawn about 40 px wide)
@@ -114,6 +116,15 @@ function buildStrips() {
   make('board-bottom.png', BOARD3_TOP + BOARD3_ROWS, full.height - EDGE_ROWS - (BOARD3_TOP + BOARD3_ROWS), false);
 }
 
+// --- the setup popup ---------------------------------------------------------------------------------------------------
+function buildSetupPopup() {
+  const src = read(POPUP_SOURCE);
+  const { x, y, w, h } = POPUP_CROP;
+  const crop = Buffer.alloc(w * h * 4);
+  for (let row = 0; row < h; row++) src.pixels.copy(crop, row * w * 4, ((y + row) * src.width + x) * 4, ((y + row) * src.width + x + w) * 4);
+  write('setup-popup.png', downscale({ width: w, height: h, pixels: crop }, POPUP_MADE_WIDTH / w));
+}
+
 // --- the die ------------------------------------------------------------------------------------------------------------
 const DIE_CELL = 128; // the size of one face's cell in the made sheet
 const DIE_PX = 118; // the width the die is made, inside its cell
@@ -186,6 +197,7 @@ function buildToken(colour, file) {
 
 buildBoard();
 buildStrips();
+buildSetupPopup();
 buildDice();
 for (const [colour, file] of Object.entries(TOKENS)) buildToken(colour, file);
 const bg = read('bg2.png');

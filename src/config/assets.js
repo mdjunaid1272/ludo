@@ -10,6 +10,7 @@ import resetButtonUrl from '../../img/buttons/reset-button-small.png';
 import settingsUrl from '../../img/buttons/setting-button-small.png'; // a 320 px copy of setting-button.png (tools/shrinkImage.mjs)
 import backgroundUrl from '../../img/elements/bg-small.png';
 import boardUrl from '../../img/elements/board.png';
+import setupPopupUrl from '../../img/elements/setup-popup.png';
 import diceUrl from '../../img/elements/dice.png';
 import boardBottomUrl from '../../img/elements/board-bottom.png';
 import boardTopUrl from '../../img/elements/board-top.png';
@@ -59,10 +60,12 @@ export const BOARD_TOP_IMAGE = 'board-top'; // the water of the board artwork ab
 export const BOARD_BOTTOM_IMAGE = 'board-bottom';
 // The six faces of the die: one picture of 3 x 2 cells, the cells numbered from 0 (face 1 is frame 0, face 6 is frame 5).
 export const DICE_SHEET = { key: 'dice-faces', url: diceUrl, frameWidth: 128, frameHeight: 128 };
+export const SETUP_POPUP_IMAGE = 'setup-popup'; // the "how many players?" popup of Player vs Computer (src/config/setupPopup.js)
 export const tokenImageKey = (colorId) => `token-${colorId}`;
 export const ELEMENT_IMAGES = [
   { key: BOARD_IMAGE, url: boardUrl },
   { key: BACKGROUND_IMAGE, url: backgroundUrl },
+  { key: SETUP_POPUP_IMAGE, url: setupPopupUrl },
   { key: BOARD_TOP_IMAGE, url: boardTopUrl },
   { key: BOARD_BOTTOM_IMAGE, url: boardBottomUrl },
   { key: tokenImageKey('red'), url: redTokenUrl },

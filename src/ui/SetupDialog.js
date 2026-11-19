@@ -1,5 +1,7 @@
+import { SETUP_POPUP_IMAGE } from '../config/assets.js';
 import { PLAYERS } from '../config/constants.js';
 import { layout } from '../config/layout.js';
+import { POPUP_BODY_WIDTH, POPUP_BUTTONS, POPUP_HEIGHT, POPUP_MADE_WIDTH } from '../config/setupPopup.js';
 import { PLAYER_COUNTS, isValidColorSet, playersFor } from '../game/settings.js';
 import { PLAY_ONLINE_SIZE } from '../online/protocol.js';
 import { Button } from '../objects/Button.js';
@@ -17,6 +19,8 @@ export const SETUP_TITLES = { computer: 'Player vs Computer', local: 'Local Mult
 //        mode 'local'    - "choose N colours": tap to toggle exactly N colours, then Start
 //                          (with 4 players every colour plays, so the game starts straight away)
 //        mode 'online'   - "pick your colour": the only step; tapping one starts the search for a match
+// Player vs Computer's first step is a picture (img/UI boards/Player Count Selection Popup.png) with the title, the question and the
+// three buttons in it; invisible tap areas lie over its buttons. Everything else uses the drawn panel.
 // Cancel (step 1) / Back (step 2) and the Escape key step backwards. The previous choices are pre-selected
 // or outlined in gold. `onStart({ count, colors })` is called when the game should begin; `onCancel()` when
 // the popup is dismissed.
@@ -43,7 +47,8 @@ export class SetupDialog {
     panel.fillStyle(UI.panel, 1).fillRoundedRect(s.cx - s.w / 2, s.top, s.w, s.h, 24);
     panel.lineStyle(3, UI.border, 1).strokeRoundedRect(s.cx - s.w / 2, s.top, s.w, s.h, 24);
     this.add(this.frame, panel);
-    this.add(this.frame, addText(scene, s.cx, s.titleY, SETUP_TITLES[mode], { fontSize: `${s.titleFont}px`, color: '#ffffff' }).setOrigin(0.5));
+    const title = this.add(this.frame, addText(scene, s.cx, s.titleY, SETUP_TITLES[mode], { fontSize: `${s.titleFont}px`, color: '#ffffff' }).setOrigin(0.5));
+    this.plain = [panel, title]; // the drawn panel and title: hidden while the picture of the first step is shown
 
     this.escape = () => this.back();
     scene.input.keyboard?.on('keydown-ESC', this.escape);
@@ -64,6 +69,13 @@ export class SetupDialog {
     this.content = [];
     const s = layout.setup;
 
+    const pictured = step === 1 && this.mode === 'computer' && Boolean(this.scene.textures?.exists?.(SETUP_POPUP_IMAGE));
+    for (const object of this.plain) object.setVisible(!pictured);
+    if (pictured) {
+      this.buildPicturedStep1();
+      return;
+    }
+
     let prompt = 'How many players?';
     if (step === 2) {
       if (this.mode === 'online') prompt = 'Pick your colour';
@@ -75,6 +87,40 @@ export class SetupDialog {
     else if (this.mode === 'local') this.buildColourToggles();
     else this.buildColourChoices();
     this.buildFooter();
+  }
+
+  // The first step of Player vs Computer: the picture, with a tap area over each of its three buttons, and Cancel under it.
+  buildPicturedStep1() {
+    const { scene } = this;
+    const s = layout.setup;
+    const gap = 16;
+    // The board of the picture is as wide as the ordinary panel, unless the screen is too short for it.
+    const k = Math.min(s.w / POPUP_BODY_WIDTH, (layout.height - 40 - s.backH - gap) / POPUP_HEIGHT);
+    const width = POPUP_MADE_WIDTH * k;
+    const height = POPUP_HEIGHT * k;
+    const top = (layout.height - (height + gap + s.backH)) / 2;
+    const left = s.cx - width / 2;
+    this.add(this.content, scene.add.image(s.cx, top, SETUP_POPUP_IMAGE).setOrigin(0.5, 0).setDisplaySize(width, height));
+    for (const n of PLAYER_COUNTS) {
+      const b = POPUP_BUTTONS[n];
+      const x = left + b.x * k;
+      const y = top + b.y * k;
+      const w = b.w * k;
+      const h = b.h * k;
+      if (n === this.lastCount) {
+        // the choice made last time is outlined in gold, as on the drawn buttons
+        this.add(this.content, scene.add.graphics().lineStyle(4, UI.accent, 1).strokeRoundedRect(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4, 24));
+      }
+      const glow = this.add(this.content, scene.add.rectangle(x, y, w, h, 0xffffff, 0).setStrokeStyle(0));
+      const area = this.add(this.content, scene.add.rectangle(x, y, w, h, 0xffffff, 0.001).setInteractive({ useHandCursor: true }));
+      area.on('pointerover', () => glow.setFillStyle(0xffffff, 0.12));
+      area.on('pointerout', () => glow.setFillStyle(0xffffff, 0));
+      area.on('pointerdown', () => {
+        glow.setFillStyle(0xffffff, 0.35);
+        this.chooseCount(n);
+      });
+    }
+    this.buildFooter(top + height + gap + s.backH / 2);
   }
 
   buildCountRow() {
@@ -156,17 +202,17 @@ export class SetupDialog {
     this.showStep(2);
   }
 
-  buildFooter() {
+  buildFooter(y = layout.setup.backY) {
     const s = layout.setup;
     const common = { color: UI.neutral, width: s.backW, height: s.backH, fontSize: s.backFont };
     const label = this.step === 1 || this.mode === 'online' ? 'Cancel' : 'Back';
     if (this.step === 2 && this.mode === 'local') {
       const half = s.backW / 2 + s.footGap / 2;
-      this.add(this.content, new Button(this.scene, s.cx - half, s.backY, { ...common, label, onClick: () => this.back() }));
+      this.add(this.content, new Button(this.scene, s.cx - half, y, { ...common, label, onClick: () => this.back() }));
       const ready = this.picked.length === this.count;
-      this.add(this.content, new Button(this.scene, s.cx + half, s.backY, { ...common, label: 'Start', color: UI.ok, onClick: () => this.start([...this.picked]) }).setEnabled(ready));
+      this.add(this.content, new Button(this.scene, s.cx + half, y, { ...common, label: 'Start', color: UI.ok, onClick: () => this.start([...this.picked]) }).setEnabled(ready));
     } else {
-      this.add(this.content, new Button(this.scene, s.cx, s.backY, { ...common, label, onClick: () => this.back() }));
+      this.add(this.content, new Button(this.scene, s.cx, y, { ...common, label, onClick: () => this.back() }));
     }
   }
 
