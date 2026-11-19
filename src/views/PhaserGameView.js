@@ -192,11 +192,11 @@ export class PhaserGameView {
     return layout.hud.diceSpot(right, below);
   }
 
-  // A new turn: the die moves next to the player's yard, takes the player's colour (and glows when it is ready).
+  // A new turn: the die appears next to the player's yard (growing from nothing), takes the player's colour (and glows when it is ready).
   // No text is shown for it; the status line only reports what happens during the turn (captures, a win).
   showTurn(player, _extra) {
     const spot = this.diceSpot(player);
-    this.dice.moveTo(spot.x, spot.y);
+    this.dice.appear(spot.x, spot.y); // the die grows from nothing next to the player whose turn it is
     this.dice.setOwner(this.palette.color(player));
     for (const [color, avatar] of this.avatars) {
       if (this.state.left.includes(color)) continue; // players who left stay faded

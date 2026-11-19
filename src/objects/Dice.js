@@ -13,6 +13,7 @@ const PIPS = {
   6: [[0.28, 0.25], [0.72, 0.25], [0.28, 0.5], [0.72, 0.5], [0.28, 0.75], [0.72, 0.75]],
 };
 
+const APPEAR_MS = 420; // how long the die takes to grow to its size at the start of a turn
 const PICTURE = SIZE * 1.02; // the face picture's size (the die in it fills 118 of its 128 pixels, so the die is a little under SIZE)
 
 // A clickable die, drawn around its centre so it can spin and bounce. Emits 'click'.
@@ -28,6 +29,8 @@ export class Dice extends Phaser.Events.EventEmitter {
     this.ownerColor = 0x2b2f3a;
     this.ready = false;
     this.pulse = null;
+    this.appearTween = null;
+    this.appearing = false;
     // The drawing (the ring and shadow, or the whole die without the pictures) and the face picture move together in one container.
     this.art = scene.add.graphics();
     this.face = scene.textures?.exists?.(DICE_SHEET.key) ? scene.add.image(0, 0, DICE_SHEET.key, this.value - 1).setDisplaySize(PICTURE, PICTURE) : null;
@@ -70,6 +73,9 @@ export class Dice extends Phaser.Events.EventEmitter {
 
   // Shakes through random faces, then settles on `value` with a little bounce.
   async showRoll(value) {
+    this.appearTween?.stop(); // a roll right after the turn began cuts the growing short
+    this.appearTween = null;
+    this.appearing = false;
     this.gfx.setScale(this.base * 1.12);
     for (let i = 0; i < 8; i++) {
       this.value = 1 + Math.floor(Math.random() * 6);
@@ -97,17 +103,45 @@ export class Dice extends Phaser.Events.EventEmitter {
     this.moveTween = this.scene.tweens.add({ targets: [this.gfx, this.hit], x, y, duration: 260, ease: 'Sine.easeInOut' });
   }
 
-  // Enables or disables clicking; while enabled the die glows and pulses.
+  // A new turn: the die appears at (x, y) growing from nothing to its size, with a little overshoot.
+  appear(x, y) {
+    this.moveTween?.stop();
+    this.moveTween = null;
+    this.appearTween?.stop();
+    this.pulse?.stop();
+    this.pulse = null;
+    this.gfx.setPosition(x, y).setAngle(0).setScale(0);
+    this.hit.setPosition(x, y);
+    this.appearing = true;
+    this.appearTween = this.scene.tweens.add({
+      targets: this.gfx,
+      scale: this.base,
+      duration: APPEAR_MS,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.appearing = false;
+        this.appearTween = null;
+        if (this.ready) this.startPulse(); // it was made ready while it was still growing
+      },
+    });
+  }
+
+  startPulse() {
+    this.pulse?.stop();
+    this.pulse = this.scene.tweens.add({ targets: this.gfx, scale: this.base * 1.08, duration: 500, yoyo: true, repeat: -1 });
+  }
+
+  // Enables or disables clicking; while enabled the die glows and pulses (once it has finished appearing).
   setReady(ready) {
     this.ready = ready;
     this.pulse?.stop();
     this.pulse = null;
     if (ready) {
       this.hit.setInteractive({ useHandCursor: true });
-      this.pulse = this.scene.tweens.add({ targets: this.gfx, scale: this.base * 1.08, duration: 500, yoyo: true, repeat: -1 });
+      if (!this.appearing) this.startPulse();
     } else {
       this.hit.disableInteractive();
-      this.gfx.setScale(this.base);
+      if (!this.appearing) this.gfx.setScale(this.base);
     }
     this.draw();
   }
