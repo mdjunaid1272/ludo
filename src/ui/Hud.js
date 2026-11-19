@@ -11,7 +11,7 @@ function iconButton(scene, textureKey, spot, onClick) {
   const side = Math.min(spot.w, spot.h * ICON_TO_PILL);
   return new ImageButton(scene, spot.x, spot.y, { textureKey, tileW: side, tileH: side, cellH: side, onClick });
 }
-const ICON_TO_PILL = 2.4; // the icon's side, against the height of the button it replaces
+const ICON_TO_PILL = 2.1; // the icon's side, against the height of the button it replaces
 
 // Heads-up display: title, Restart/Menu buttons and the status line.
 // Everything is placed from the layout, so it adapts to portrait and landscape screens.
