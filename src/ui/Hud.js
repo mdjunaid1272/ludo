@@ -11,7 +11,7 @@ function iconButton(scene, textureKey, spot, onClick, shiftX = 0) {
   const side = Math.min(spot.w, spot.h * ICON_TO_PILL);
   return new ImageButton(scene, spot.x + shiftX, spot.y, { textureKey, tileW: side, tileH: side, cellH: side, onClick });
 }
-const ICON_SHIFT = 10; // Restart is moved this far left, and Menu this far right (layout pixels), further out towards the edges
+const ICON_SHIFT = 20; // Restart is moved this far left, and Menu this far right (layout pixels), further out towards the edges
 const ICON_TO_PILL = 1.47; // the icon's side, against the height of the button it replaces
 
 // Heads-up display: title, Restart/Menu buttons and the status line.
