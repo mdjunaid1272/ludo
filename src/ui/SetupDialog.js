@@ -1,7 +1,7 @@
-import { SETUP_POPUP_IMAGE } from '../config/assets.js';
+import { SETUP_POPUP_IMAGES } from '../config/assets.js';
 import { PLAYERS } from '../config/constants.js';
 import { layout } from '../config/layout.js';
-import { POPUP_BODY_WIDTH, POPUP_BUTTONS, POPUP_HEIGHT, POPUP_MADE_WIDTH } from '../config/setupPopup.js';
+import { POPUPS, POPUP_MADE_WIDTH } from '../config/setupPopup.js';
 import { PLAYER_COUNTS, isValidColorSet, playersFor } from '../game/settings.js';
 import { PLAY_ONLINE_SIZE } from '../online/protocol.js';
 import { Button } from '../objects/Button.js';
@@ -19,7 +19,7 @@ export const SETUP_TITLES = { computer: 'Player vs Computer', local: 'Local Mult
 //        mode 'local'    - "choose N colours": tap to toggle exactly N colours, then Start
 //                          (with 4 players every colour plays, so the game starts straight away)
 //        mode 'online'   - "pick your colour": the only step; tapping one starts the search for a match
-// Player vs Computer's first step is a picture (img/UI boards/Player Count Selection Popup.png) with the title, the question and the
+// The first step of Player vs Computer and of Local Multiplayer is a picture (img/UI boards) with the title, the question and the
 // three buttons in it; invisible tap areas lie over its buttons. Everything else uses the drawn panel.
 // Cancel (step 1) / Back (step 2) and the Escape key step backwards. The previous choices are pre-selected
 // or outlined in gold. `onStart({ count, colors })` is called when the game should begin; `onCancel()` when
@@ -69,7 +69,7 @@ export class SetupDialog {
     this.content = [];
     const s = layout.setup;
 
-    const pictured = step === 1 && this.mode === 'computer' && Boolean(this.scene.textures?.exists?.(SETUP_POPUP_IMAGE));
+    const pictured = step === 1 && Boolean(POPUPS[this.mode]) && Boolean(this.scene.textures?.exists?.(SETUP_POPUP_IMAGES[this.mode]));
     for (const object of this.plain) object.setVisible(!pictured);
     if (pictured) {
       this.buildPicturedStep1();
@@ -89,20 +89,21 @@ export class SetupDialog {
     this.buildFooter();
   }
 
-  // The first step of Player vs Computer: the picture, with a tap area over each of its three buttons, and Cancel under it.
+  // The first step of Player vs Computer / Local Multiplayer: the picture, with a tap area over each of its three buttons, and Cancel under it.
   buildPicturedStep1() {
     const { scene } = this;
     const s = layout.setup;
     const gap = 16;
     // The board of the picture is as wide as the ordinary panel, unless the screen is too short for it.
-    const k = Math.min(s.w / POPUP_BODY_WIDTH, (layout.height - 40 - s.backH - gap) / POPUP_HEIGHT);
+    const popup = POPUPS[this.mode];
+    const k = Math.min(s.w / popup.bodyWidth, (layout.height - 40 - s.backH - gap) / popup.height);
     const width = POPUP_MADE_WIDTH * k;
-    const height = POPUP_HEIGHT * k;
+    const height = popup.height * k;
     const top = (layout.height - (height + gap + s.backH)) / 2;
     const left = s.cx - width / 2;
-    this.add(this.content, scene.add.image(s.cx, top, SETUP_POPUP_IMAGE).setOrigin(0.5, 0).setDisplaySize(width, height));
+    this.add(this.content, scene.add.image(s.cx, top, SETUP_POPUP_IMAGES[this.mode]).setOrigin(0.5, 0).setDisplaySize(width, height));
     for (const n of PLAYER_COUNTS) {
-      const b = POPUP_BUTTONS[n];
+      const b = popup.buttons[n];
       const x = left + b.x * k;
       const y = top + b.y * k;
       const w = b.w * k;
