@@ -10,6 +10,8 @@ import { decodePng, downscale, encodePng } from './png.mjs';
 //                    grid is kept (BOARD_MARGIN_CELLS), so the yards' rims are not cut off.
 //   board-top.png, board-bottom.png   the water of ludo-board3.png above and below the board, as it is in the artwork (not turned or
 //                    warped), as wide as board.png; the edge next to the board fades out, over the margin, into board.png
+//   dice.png         the six faces of the die from dice-sheet.png, in a sheet of 3 x 2 cells of 128 px (faces 1 2 3 on the top row, 4 5 6 below),
+//                    each cropped to the die and made the same size, centred in its cell
 //   token-<colour>.png   the four pieces, cropped to the piece and made small (they are drawn about 40 px wide)
 //   bg-small.png     the background (from bg2.png) at half size
 const DIR = new URL('../img/elements/', import.meta.url);
@@ -112,6 +114,45 @@ function buildStrips() {
   make('board-bottom.png', BOARD3_TOP + BOARD3_ROWS, full.height - EDGE_ROWS - (BOARD3_TOP + BOARD3_ROWS), false);
 }
 
+// --- the die ------------------------------------------------------------------------------------------------------------
+const DIE_CELL = 128; // the size of one face's cell in the made sheet
+const DIE_PX = 118; // the width the die is made, inside its cell
+
+function buildDice() {
+  const sheet = read('dice-sheet.png'); // six dice in two rows of three, on a see-through background
+  const cellW = sheet.width / 3;
+  const cellH = sheet.height / 2;
+  const out = Buffer.alloc(DIE_CELL * 3 * DIE_CELL * 2 * 4);
+  for (let face = 0; face < 6; face++) {
+    const col = face % 3;
+    const row = Math.floor(face / 3);
+    // the box round what is not see-through, in this die's cell of the sheet
+    let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+    for (let y = Math.floor(row * cellH); y < Math.floor((row + 1) * cellH); y++) {
+      for (let x = Math.floor(col * cellW); x < Math.floor((col + 1) * cellW); x++) {
+        if (sheet.pixels[(y * sheet.width + x) * 4 + 3] > 40) {
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        }
+      }
+    }
+    const w = x1 - x0 + 1;
+    const h = y1 - y0 + 1;
+    const crop = Buffer.alloc(w * h * 4);
+    for (let y = 0; y < h; y++) sheet.pixels.copy(crop, y * w * 4, ((y0 + y) * sheet.width + x0) * 4, ((y0 + y) * sheet.width + x0 + w) * 4);
+    const small = downscale({ width: w, height: h, pixels: crop }, DIE_PX / w); // every die the same width
+    const left = col * DIE_CELL + Math.floor((DIE_CELL - small.width) / 2);
+    const top = row * DIE_CELL + Math.floor((DIE_CELL - small.height) / 2);
+    for (let y = 0; y < small.height; y++) {
+      for (let x = 0; x < small.width; x++) {
+        const from = (y * small.width + x) * 4;
+        const to = ((top + y) * DIE_CELL * 3 + left + x) * 4;
+        for (let c = 0; c < 4; c++) out[to + c] = small.pixels[from + c];
+      }
+    }
+  }
+  write('dice.png', { width: DIE_CELL * 3, height: DIE_CELL * 2, pixels: out });
+}
+
 // --- the pieces ----------------------------------------------------------------------------------------------------------
 const TOKENS = { red: 'Red-T.png', green: 'Green-T.png', yellow: 'Yellow-T.png', blue: 'Blue-T.png' };
 const TOKEN_PX = 128; // the piece's width in the made picture
@@ -145,6 +186,7 @@ function buildToken(colour, file) {
 
 buildBoard();
 buildStrips();
+buildDice();
 for (const [colour, file] of Object.entries(TOKENS)) buildToken(colour, file);
 const bg = read('bg2.png');
 write('bg-small.png', downscale(bg, 0.5));

@@ -5,6 +5,7 @@ import onlineUrl from '../../img/buttons/play-online-button.png';
 import settingsUrl from '../../img/buttons/setting-button-small.png'; // a 320 px copy of setting-button.png (tools/shrinkImage.mjs)
 import backgroundUrl from '../../img/elements/bg-small.png';
 import boardUrl from '../../img/elements/board.png';
+import diceUrl from '../../img/elements/dice.png';
 import boardBottomUrl from '../../img/elements/board-bottom.png';
 import boardTopUrl from '../../img/elements/board-top.png';
 import blueTokenUrl from '../../img/elements/token-blue.png';
@@ -43,6 +44,8 @@ export const BOARD_IMAGE = 'board-img';
 export const BACKGROUND_IMAGE = 'bg-img';
 export const BOARD_TOP_IMAGE = 'board-top'; // the water of the board artwork above and below the board
 export const BOARD_BOTTOM_IMAGE = 'board-bottom';
+// The six faces of the die: one picture of 3 x 2 cells, the cells numbered from 0 (face 1 is frame 0, face 6 is frame 5).
+export const DICE_SHEET = { key: 'dice-faces', url: diceUrl, frameWidth: 128, frameHeight: 128 };
 export const tokenImageKey = (colorId) => `token-${colorId}`;
 export const ELEMENT_IMAGES = [
   { key: BOARD_IMAGE, url: boardUrl },

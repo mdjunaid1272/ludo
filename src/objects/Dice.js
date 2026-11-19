@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DICE_SHEET } from '../config/assets.js';
 import { layout, MIN_TOUCH } from '../config/layout.js';
 
 const SIZE = 72; // drawn at this size, then scaled to the size the layout asks for
@@ -12,8 +13,11 @@ const PIPS = {
   6: [[0.28, 0.25], [0.72, 0.25], [0.28, 0.5], [0.72, 0.5], [0.28, 0.75], [0.72, 0.75]],
 };
 
+const PICTURE = SIZE * 1.02; // the face picture's size (the die in it fills 118 of its 128 pixels, so the die is a little under SIZE)
+
 // A clickable die, drawn around its centre so it can spin and bounce. Emits 'click'.
-// The border takes the current player's colour; a pulse shows when it is waiting for a roll.
+// The faces are the pictures in img/elements/dice-sheet.png (without them the die is drawn with shapes). A ring in the current player's
+// colour stands round it (thicker while the die is waiting for a roll), and a pulse shows when it is waiting for a roll.
 export class Dice extends Phaser.Events.EventEmitter {
   constructor(scene, animator, x, y, size = SIZE) {
     super();
@@ -24,7 +28,10 @@ export class Dice extends Phaser.Events.EventEmitter {
     this.ownerColor = 0x2b2f3a;
     this.ready = false;
     this.pulse = null;
-    this.gfx = scene.add.graphics({ x, y }).setDepth(6).setScale(this.base);
+    // The drawing (the ring and shadow, or the whole die without the pictures) and the face picture move together in one container.
+    this.art = scene.add.graphics();
+    this.face = scene.textures?.exists?.(DICE_SHEET.key) ? scene.add.image(0, 0, DICE_SHEET.key, this.value - 1).setDisplaySize(PICTURE, PICTURE) : null;
+    this.gfx = scene.add.container(x, y, this.face ? [this.art, this.face] : [this.art]).setDepth(6).setScale(this.base);
     const hitSize = Math.max(size + 12, MIN_TOUCH / layout.scale);
     this.hit = scene.add.rectangle(x, y, hitSize, hitSize, 0x000000, 0).setInteractive({ useHandCursor: true }).setDepth(7);
     this.hit.on('pointerdown', () => this.emit('click'));
@@ -33,7 +40,14 @@ export class Dice extends Phaser.Events.EventEmitter {
 
   draw() {
     const half = SIZE / 2;
-    const g = this.gfx.clear();
+    const g = this.art.clear();
+    if (this.face) {
+      this.face.setFrame(this.value - 1);
+      // a soft shadow under the die, and the ring in the player's colour round it
+      g.fillStyle(0x000000, 0.3).fillRoundedRect(-half + 3, -half + 7, SIZE, SIZE, 16);
+      g.lineStyle(this.ready ? 7 : 4, this.ownerColor, 1).strokeRoundedRect(-half - 3, -half - 3, SIZE + 6, SIZE + 6, 18);
+      return;
+    }
     g.fillStyle(0x000000, 0.35).fillRoundedRect(-half + 3, -half + 6, SIZE, SIZE, 14);
     g.fillStyle(0xffffff, 1).fillRoundedRect(-half, -half, SIZE, SIZE, 14);
     g.fillStyle(0xe3e8ef, 1).fillRoundedRect(-half + 4, half - 14, SIZE - 8, 10, 6); // soft underside
