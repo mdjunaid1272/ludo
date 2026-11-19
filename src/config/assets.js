@@ -6,8 +6,8 @@ import settingsUrl from '../../img/buttons/setting-button-small.png'; // a 320 p
 import backgroundUrl from '../../img/elements/bg-small.png';
 import boardUrl from '../../img/elements/board.png';
 import diceUrl from '../../img/elements/dice.png';
-import boardBottomUrl from '../../img/elements/board-bottom.png';
-import boardTopUrl from '../../img/elements/board-top.png';
+import waterBaseUrl from '../../img/elements/water-base.png';
+import waterLightUrl from '../../img/elements/water-light.png';
 import blueTokenUrl from '../../img/elements/token-blue.png';
 import greenTokenUrl from '../../img/elements/token-green.png';
 import redTokenUrl from '../../img/elements/token-red.png';
@@ -42,16 +42,16 @@ export const MENU_BUTTON_IMAGES = [
 // game falls back to drawing it with shapes.
 export const BOARD_IMAGE = 'board-img';
 export const BACKGROUND_IMAGE = 'bg-img';
-export const BOARD_TOP_IMAGE = 'board-top'; // the water of the board artwork above and below the board
-export const BOARD_BOTTOM_IMAGE = 'board-bottom';
+export const WATER_BASE_IMAGE = 'water-base'; // the pictures of the moving water behind the board
+export const WATER_LIGHT_IMAGE = 'water-light';
 // The six faces of the die: one picture of 3 x 2 cells, the cells numbered from 0 (face 1 is frame 0, face 6 is frame 5).
 export const DICE_SHEET = { key: 'dice-faces', url: diceUrl, frameWidth: 128, frameHeight: 128 };
 export const tokenImageKey = (colorId) => `token-${colorId}`;
 export const ELEMENT_IMAGES = [
   { key: BOARD_IMAGE, url: boardUrl },
   { key: BACKGROUND_IMAGE, url: backgroundUrl },
-  { key: BOARD_TOP_IMAGE, url: boardTopUrl },
-  { key: BOARD_BOTTOM_IMAGE, url: boardBottomUrl },
+  { key: WATER_BASE_IMAGE, url: waterBaseUrl },
+  { key: WATER_LIGHT_IMAGE, url: waterLightUrl },
   { key: tokenImageKey('red'), url: redTokenUrl },
   { key: tokenImageKey('green'), url: greenTokenUrl },
   { key: tokenImageKey('yellow'), url: yellowTokenUrl },
